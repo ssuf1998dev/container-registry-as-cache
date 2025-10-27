@@ -1,0 +1,29 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+{
+  "build": {
+    "dockerfile": "Dockerfile",
+    "options": [
+      "--network=host"
+    ]
+  },
+  "runArgs": [
+    "--env-file",
+    ".devcontainer/.env"
+  ],
+  "mounts": [
+    "source=${localWorkspaceFolderBasename}-go,target=/root/go/1.25.3,type=volume"
+  ],
+  "postAttachCommand": {
+    "git": "git config --global help.format info && git config --global user.name $GIT_USER_NAME && git config --global user.email $GIT_USER_EMAIL",
+    "gopls": "command -v gopls || go install golang.org/x/tools/gopls@latest",
+    "staticcheck": "command -v staticcheck || go install honnef.co/go/tools/cmd/staticcheck@latest"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.vscode-yaml",
+        "golang.go"
+      ]
+    }
+  }
+}
