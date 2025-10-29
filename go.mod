@@ -3,6 +3,7 @@ module github.com/ssuf1998dev/container-registry-as-cache
 go 1.25.3
 
 require (
+	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/google/go-containerregistry v0.20.6
 	github.com/stretchr/testify v1.11.1
 )

@@ -2,9 +2,7 @@ package api
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"crypto/tls"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -35,13 +33,13 @@ func Push(opts *PushOptions) error {
 	return err
 }
 
-func push(opts *PushOptions, isRemote bool) (*bytes.Buffer, error) {
+func push(opts *PushOptions, isRemote bool) ([]byte, error) {
 	base := empty.Image
 
 	meta, _ := json.Marshal(Meta{
-		Version: CRAC_VERSION,
+		Version: CRAC_VERSION.String(),
 	})
-	metaLayer, _ := crane.Layer(map[string][]byte{"/meta.json": meta})
+	metaLayer, _ := crane.Layer(map[string][]byte{"/crac/meta.json": meta})
 	img, _ := mutate.AppendLayers(base, metaLayer)
 
 	files := make(map[string][]byte, len(opts.Files))
@@ -72,29 +70,13 @@ func push(opts *PushOptions, isRemote bool) (*bytes.Buffer, error) {
 	}
 	img, _ = mutate.ConfigFile(img, cf)
 
-	var tag string
-	layers, _ := img.Layers()
-	if len(opts.DepFiles) == 0 {
-		ver, _ := layers[0].Digest()
-		tag = ver.String()[0:8]
-	} else {
-		hashes := []string{}
-		for _, f := range opts.DepFiles {
-			b, err := os.ReadFile(f)
-			if err != nil {
-				return nil, err
-			}
-			hashes = append(hashes, fmt.Sprintf("%x", sha256.Sum256(b)))
-		}
-		hash := sha256.Sum256([]byte(strings.Join(hashes, "\n")))
-		tag = hex.EncodeToString(hash[:])[0:8]
+	tag, err := computeTag(opts.DepFiles)
+	if err != nil {
+		return nil, err
 	}
 	repo := opts.Repo
 	if len(repo) == 0 {
-		repo = "docker.io/library/crac"
-	}
-	if len(tag) == 0 {
-		tag = "latest"
+		repo = fmt.Sprintf("%s/crac", name.DefaultRegistry)
 	}
 	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag))
 	if err != nil {
@@ -117,6 +99,6 @@ func push(opts *PushOptions, isRemote bool) (*bytes.Buffer, error) {
 		if err := tarball.Write(ref, img, &buf); err != nil {
 			return nil, err
 		}
-		return &buf, nil
+		return buf.Bytes(), nil
 	}
 }
