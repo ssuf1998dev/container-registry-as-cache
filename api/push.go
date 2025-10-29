@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -21,42 +22,45 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 )
 
-type PushOptions struct {
-	BaseOptions
-	DepFiles []string
-	Files    []string
-	Platform string
-}
+func Push(opts ...Option) error {
+	o := &options{
+		context: context.Background(),
+	}
+	for _, option := range opts {
+		option(o)
+	}
 
-func Push(opts *PushOptions) error {
-	_, err := push(opts, true)
+	_, err := push(o, true)
 	return err
 }
 
-func push(opts *PushOptions, isRemote bool) ([]byte, error) {
+func push(opts *options, isRemote bool) ([]byte, error) {
 	base := empty.Image
 
-	meta, _ := json.Marshal(Meta{
-		Version: CRAC_VERSION.String(),
+	meta, _ := json.Marshal(cracMeta{
+		Version: CracVersion.String(),
 	})
 	metaLayer, _ := crane.Layer(map[string][]byte{"/crac/meta.json": meta})
 	img, _ := mutate.AppendLayers(base, metaLayer)
 
-	files := make(map[string][]byte, len(opts.Files))
-	for _, f := range opts.Files {
+	files := make(map[string][]byte, len(opts.files))
+	for _, f := range opts.files {
 		b, err := os.ReadFile(f)
 		if err != nil {
 			return nil, err
 		}
 		files[f] = b
 	}
+	if len(files) == 0 {
+		return nil, fmt.Errorf("empty image is not allowed")
+	}
 	cacheLayer, _ := crane.Layer(files)
 	img, _ = mutate.AppendLayers(img, cacheLayer)
 
 	cf, _ := img.ConfigFile()
 	cf = cf.DeepCopy()
-	if len(opts.Platform) > 0 {
-		archOs := strings.SplitN(opts.Platform, "/", 2)
+	if len(opts.platform) > 0 {
+		archOs := strings.SplitN(opts.platform, "/", 2)
 		cf.OS = archOs[0]
 		cf.Architecture = archOs[1]
 	} else {
@@ -70,11 +74,11 @@ func push(opts *PushOptions, isRemote bool) ([]byte, error) {
 	}
 	img, _ = mutate.ConfigFile(img, cf)
 
-	tag, err := computeTag(opts.DepFiles)
+	tag, err := computeTag(opts.depFiles)
 	if err != nil {
 		return nil, err
 	}
-	repo := opts.Repo
+	repo := opts.repo
 	if len(repo) == 0 {
 		repo = fmt.Sprintf("%s/crac", name.DefaultRegistry)
 	}
@@ -84,14 +88,15 @@ func push(opts *PushOptions, isRemote bool) ([]byte, error) {
 	}
 	if isRemote {
 		transport := remote.DefaultTransport.(*http.Transport)
-		if opts.Insecure {
+		if opts.insecure {
 			transport = transport.Clone()
 			transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		}
 		err = remote.Write(
 			ref, img,
-			remote.WithAuth(&authn.Basic{Username: opts.Username, Password: opts.Password}),
+			remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}),
 			remote.WithTransport(transport),
+			remote.WithContext(opts.context),
 		)
 		return nil, err
 	} else {

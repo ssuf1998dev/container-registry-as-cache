@@ -1,13 +1,12 @@
 package api
 
 import (
-	"archive/tar"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/google/go-containerregistry/pkg/authn"
@@ -15,22 +14,28 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 )
 
-type PullOptions struct {
-	BaseOptions
-	DepFiles []string
-}
+func Pull(opts ...Option) error {
+	o := &options{
+		context: context.Background(),
+	}
+	for _, option := range opts {
+		option(o)
+	}
 
-func Pull(opts *PullOptions) error {
-	_, err := pull(opts, true)
+	_, err := pull(o, true)
 	return err
 }
 
-func pull(opts *PullOptions, output bool) ([]byte, error) {
-	tag, err := computeTag(opts.DepFiles)
-	if err != nil {
-		return nil, err
+func pull(opts *options, output bool) ([]byte, error) {
+	tag := opts.tag
+	var err error
+	if len(tag) == 0 {
+		tag, err = computeTag(opts.depFiles)
+		if err != nil {
+			return nil, err
+		}
 	}
-	repo := opts.Repo
+	repo := opts.repo
 	if len(repo) == 0 {
 		repo = fmt.Sprintf("%s/crac", name.DefaultRegistry)
 	}
@@ -40,14 +45,15 @@ func pull(opts *PullOptions, output bool) ([]byte, error) {
 	}
 
 	transport := remote.DefaultTransport.(*http.Transport)
-	if opts.Insecure {
+	if opts.insecure {
 		transport = transport.Clone()
 		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 	img, err := remote.Image(
 		ref,
-		remote.WithAuth(&authn.Basic{Username: opts.Username, Password: opts.Password}),
+		remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}),
 		remote.WithTransport(transport),
+		remote.WithContext(opts.context),
 	)
 	if err != nil {
 		return nil, err
@@ -67,30 +73,18 @@ func pull(opts *PullOptions, output bool) ([]byte, error) {
 	layers, _ := img.Layers()
 	metaLayer := layers[metaIndex]
 	metaReader, _ := metaLayer.Uncompressed()
-	metaData, _ := extraFileInTar(metaReader, "/crac/meta.json")
-	var meta Meta
+	metaData, _ := extraFileTar(metaReader, "/crac/meta.json")
+	var meta cracMeta
 	_ = json.Unmarshal(metaData, &meta)
-	if len(meta.Version) == 0 || !CRAC_VERSION_CONSTRAINT.Check(semver.MustParse(meta.Version)) {
-		return nil, fmt.Errorf("invalid, version does't meet the constraint, (%s)", CRAC_VERSION_CONSTRAINT.String())
+	if len(meta.Version) == 0 || !cracVersionConstraint.Check(semver.MustParse(meta.Version)) {
+		return nil, fmt.Errorf("invalid, version does't meet the constraint, (%s)", cracVersionConstraint.String())
 	}
 
 	cacheIndex := metaIndex + 1
 	cacheLayer := layers[cacheIndex]
 	cacheReader, _ := cacheLayer.Uncompressed()
 	if output {
-		err := walkInTar(cacheReader, func(head *tar.Header, fi os.FileInfo, data []byte) (bool, error) {
-			f, err := os.Create(fi.Name())
-			if err != nil {
-				return false, err
-			}
-			defer f.Close()
-			_, err = f.Write(data)
-			if err != nil {
-				return false, err
-			}
-			os.Chmod(fi.Name(), fi.Mode().Perm())
-			return false, nil
-		})
+		err := untar(cacheReader, opts.workdir)
 		return nil, err
 	} else {
 		return io.ReadAll(cacheReader)

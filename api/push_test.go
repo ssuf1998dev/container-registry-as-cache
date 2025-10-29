@@ -18,9 +18,9 @@ import (
 )
 
 func TestPushLocal(t *testing.T) {
-	data, err := push(&PushOptions{
-		DepFiles: []string{"../testdata/foo"},
-		Files:    []string{"../testdata/foo"},
+	data, err := push(&options{
+		depFiles: []string{"../testdata/foo"},
+		files:    []string{"../testdata/foo"},
 	}, false)
 	require.NoError(t, err)
 
@@ -42,7 +42,7 @@ func TestPushLocal(t *testing.T) {
 	metaLayer := layers[0]
 	metaReader, _ := metaLayer.Uncompressed()
 	metaTar := tar.NewReader(metaReader)
-	var meta Meta
+	var meta cracMeta
 	for h, err := metaTar.Next(); err != io.EOF; h, err = metaTar.Next() {
 		require.NoError(t, err)
 		if h.Name == "/crac/meta.json" {
@@ -51,19 +51,18 @@ func TestPushLocal(t *testing.T) {
 			break
 		}
 	}
-	assert.Equal(t, CRAC_VERSION.String(), meta.Version)
+	assert.Equal(t, CracVersion.String(), meta.Version)
 }
 
 func TestPushRemote(t *testing.T) {
-	_, err := push(&PushOptions{
-		BaseOptions: BaseOptions{
-			Repo:     "localhost:5000/crac",
-			Username: "testuser",
-			Password: "testpassword",
-			Insecure: true,
-		},
-		DepFiles: []string{"../testdata/foo"},
-		Files:    []string{"../testdata/foo"},
+	_, err := push(&options{
+		context:  t.Context(),
+		repo:     "localhost:5000/crac",
+		username: "testuser",
+		password: "testpassword",
+		insecure: true,
+		depFiles: []string{"../testdata/foo"},
+		files:    []string{"../testdata/foo"},
 	}, true)
 	require.NoError(t, err)
 
