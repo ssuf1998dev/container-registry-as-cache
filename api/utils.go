@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/google/go-containerregistry/pkg/name"
@@ -21,6 +22,8 @@ func computeTag(files []string) (string, error) {
 			if err != nil {
 				return "", err
 			}
+			f, _ = filepath.Abs(f)
+			b = append(fmt.Appendf(nil, "%s:", f), b...)
 			hashes = append(hashes, fmt.Sprintf("%x", sha256.Sum256(b)))
 		}
 		hash := sha256.Sum256([]byte(strings.Join(hashes, "\n")))
