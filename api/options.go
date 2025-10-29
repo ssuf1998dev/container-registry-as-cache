@@ -1,6 +1,10 @@
 package api
 
-import "context"
+import (
+	"context"
+
+	"github.com/google/go-containerregistry/pkg/name"
+)
 
 type Option func(*options)
 
@@ -38,9 +42,51 @@ func WithUsername(username string) Option {
 	}
 }
 
+func WithLoginUsername() Option {
+	return func(o *options) {
+		o.username = func() string {
+			config, err := readConfig()
+			if err != nil || config.Auths == nil {
+				return o.username
+			}
+			ref, err := name.ParseReference(o.repo)
+			if err != nil {
+				return o.username
+			}
+			key := ref.Context().RegistryStr()
+			if auth, ok := config.Auths[key]; ok {
+				return auth.Username
+			} else {
+				return o.username
+			}
+		}()
+	}
+}
+
 func WithPassword(password string) Option {
 	return func(o *options) {
 		o.password = password
+	}
+}
+
+func WithLoginPassword() Option {
+	return func(o *options) {
+		o.password = func() string {
+			config, err := readConfig()
+			if err != nil || config.Auths == nil {
+				return o.password
+			}
+			ref, err := name.ParseReference(o.repo)
+			if err != nil {
+				return o.password
+			}
+			key := ref.Context().RegistryStr()
+			if auth, ok := config.Auths[key]; ok {
+				return auth.Password
+			} else {
+				return o.password
+			}
+		}()
 	}
 }
 

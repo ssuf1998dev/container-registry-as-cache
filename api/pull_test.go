@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ func TestPull(t *testing.T) {
 
 	_, err := push(&options{
 		context:  t.Context(),
-		repo:     "localhost:5000/crac",
+		repo:     fmt.Sprintf("localhost:5000/%s", Crac),
 		username: "testuser",
 		password: "testpassword",
 		insecure: true,
@@ -24,7 +25,7 @@ func TestPull(t *testing.T) {
 
 	cache, err := pull(&options{
 		context:  t.Context(),
-		repo:     "localhost:5000/crac",
+		repo:     fmt.Sprintf("localhost:5000/%s", Crac),
 		username: "testuser",
 		password: "testpassword",
 		insecure: true,

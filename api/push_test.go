@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -45,7 +46,7 @@ func TestPushLocal(t *testing.T) {
 	var meta cracMeta
 	for h, err := metaTar.Next(); err != io.EOF; h, err = metaTar.Next() {
 		require.NoError(t, err)
-		if h.Name == "/crac/meta.json" {
+		if h.Name == fmt.Sprintf("/%s/meta.json", Crac) {
 			b, _ := io.ReadAll(metaTar)
 			_ = json.Unmarshal(b, &meta)
 			break
@@ -57,7 +58,7 @@ func TestPushLocal(t *testing.T) {
 func TestPushRemote(t *testing.T) {
 	_, err := push(&options{
 		context:  t.Context(),
-		repo:     "localhost:5000/crac",
+		repo:     fmt.Sprintf("localhost:5000/%s", Crac),
 		username: "testuser",
 		password: "testpassword",
 		insecure: true,
@@ -68,7 +69,7 @@ func TestPushRemote(t *testing.T) {
 
 	transport := remote.DefaultTransport.(*http.Transport).Clone()
 	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	repo, _ := name.NewRepository("localhost:5000/crac")
+	repo, _ := name.NewRepository(fmt.Sprintf("localhost:5000/%s", Crac))
 	tags, err := remote.List(
 		repo,
 		remote.WithAuth(&authn.Basic{Username: "testuser", Password: "testpassword"}),

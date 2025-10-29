@@ -40,7 +40,7 @@ func push(opts *options, isRemote bool) ([]byte, error) {
 	meta, _ := json.Marshal(cracMeta{
 		Version: CracVersion.String(),
 	})
-	metaLayer, _ := crane.Layer(map[string][]byte{"/crac/meta.json": meta})
+	metaLayer, _ := crane.Layer(map[string][]byte{fmt.Sprintf("/%s/meta.json", Crac): meta})
 	img, _ := mutate.AppendLayers(base, metaLayer)
 
 	files := make(map[string][]byte, len(opts.files))
@@ -69,8 +69,8 @@ func push(opts *options, isRemote bool) ([]byte, error) {
 	}
 	cf.Created = v1.Time{Time: time.Now()}
 	cf.History = []v1.History{
-		{Created: cf.Created, CreatedBy: "CRACMETA"},
-		{Created: cf.Created, CreatedBy: "CRACCOPY"},
+		{Created: cf.Created, CreatedBy: CreatedByCracMeta},
+		{Created: cf.Created, CreatedBy: CreatedByCracCopy},
 	}
 	img, _ = mutate.ConfigFile(img, cf)
 
@@ -80,7 +80,7 @@ func push(opts *options, isRemote bool) ([]byte, error) {
 	}
 	repo := opts.repo
 	if len(repo) == 0 {
-		repo = fmt.Sprintf("%s/crac", name.DefaultRegistry)
+		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, Crac)
 	}
 	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag))
 	if err != nil {

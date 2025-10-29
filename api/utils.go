@@ -15,6 +15,9 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 )
 
+var Crac = "crac"
+var CreatedByCracMeta = "CRACMETA"
+var CreatedByCracCopy = "CRACCOPY"
 var CracVersion = semver.MustParse("1.0.0")
 var cracVersionConstraint, _ = semver.NewConstraint(fmt.Sprintf(">= %d < %d", CracVersion.Major(), CracVersion.Major()+1))
 

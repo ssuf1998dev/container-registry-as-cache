@@ -37,7 +37,7 @@ func pull(opts *options, output bool) ([]byte, error) {
 	}
 	repo := opts.repo
 	if len(repo) == 0 {
-		repo = fmt.Sprintf("%s/crac", name.DefaultRegistry)
+		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, Crac)
 	}
 	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag))
 	if err != nil {
@@ -61,19 +61,19 @@ func pull(opts *options, output bool) ([]byte, error) {
 	cf, _ := img.ConfigFile()
 	metaIndex := -1
 	for i, history := range cf.History {
-		if history.CreatedBy == "CRACMETA" {
+		if history.CreatedBy == CreatedByCracMeta {
 			metaIndex = i
 			break
 		}
 	}
 	if metaIndex < 0 {
-		return nil, fmt.Errorf("invalid, \"CRACMETA\" not found")
+		return nil, fmt.Errorf("invalid, \"%s\" not found", CreatedByCracMeta)
 	}
 
 	layers, _ := img.Layers()
 	metaLayer := layers[metaIndex]
 	metaReader, _ := metaLayer.Uncompressed()
-	metaData, _ := extraFileTar(metaReader, "/crac/meta.json")
+	metaData, _ := extraFileTar(metaReader, fmt.Sprintf("/%s/meta.json", Crac))
 	var meta cracMeta
 	_ = json.Unmarshal(metaData, &meta)
 	if len(meta.Version) == 0 || !cracVersionConstraint.Check(semver.MustParse(meta.Version)) {
