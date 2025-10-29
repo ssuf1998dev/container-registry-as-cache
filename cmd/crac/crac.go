@@ -40,6 +40,7 @@ func main() {
 					&cli.StringArg{Name: "repo"},
 				},
 				Flags: []cli.Flag{
+					&cli.StringSliceFlag{Name: "keys", Usage: "key(s) for computing cache image tag", Aliases: []string{"k"}},
 					&cli.StringSliceFlag{Name: "deps", Usage: "dependent file(s) for computing cache image tag, glob supported", Aliases: []string{"d"}},
 					&cli.StringSliceFlag{Name: "files", Usage: "cache file(s) to make image, glob supported", Aliases: []string{"f"}},
 					&cli.StringFlag{Name: "username", Usage: "username", Aliases: []string{"u"}},
@@ -66,6 +67,7 @@ func main() {
 						api.WithUsername(cmd.String("username")),
 						api.WithPassword(cmd.String("password")),
 						api.WithInsecure(cmd.Bool("insecure")),
+						api.WithKeys(cmd.StringSlice("keys")),
 						api.WithDepFiles(deps),
 						api.WithFiles(files),
 					)
@@ -80,6 +82,7 @@ func main() {
 					&cli.StringArg{Name: "repo"},
 				},
 				Flags: []cli.Flag{
+					&cli.StringSliceFlag{Name: "keys", Usage: "key(s) for computing cache image tag", Aliases: []string{"k"}},
 					&cli.StringSliceFlag{Name: "deps", Usage: "dependent file(s) for computing cache image tag, glob supported", Aliases: []string{"d"}},
 					&cli.StringFlag{Name: "tag", Usage: "specific a tag to pull", Aliases: []string{"t"}},
 					&cli.StringFlag{Name: "workdir", Usage: "working directory where to uncompress file(s) to", Aliases: []string{"w"}},
@@ -103,6 +106,7 @@ func main() {
 						api.WithUsername(cmd.String("username")),
 						api.WithPassword(cmd.String("password")),
 						api.WithInsecure(cmd.Bool("insecure")),
+						api.WithKeys(cmd.StringSlice("keys")),
 						api.WithDepFiles(deps),
 						api.WithTag(cmd.String("tag")),
 						api.WithWorkdir(cmd.String("workdir")),

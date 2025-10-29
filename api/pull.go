@@ -30,7 +30,7 @@ func pull(opts *options, output bool) ([]byte, error) {
 	tag := opts.tag
 	var err error
 	if len(tag) == 0 {
-		tag, err = computeTag(opts.depFiles)
+		tag, err = computeTag(opts.depFiles, opts.keys)
 		if err != nil {
 			return nil, err
 		}

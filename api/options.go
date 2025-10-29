@@ -11,6 +11,7 @@ type options struct {
 	password string
 	insecure bool
 
+	keys     []string
 	depFiles []string
 	files    []string
 	platform string
@@ -46,6 +47,12 @@ func WithPassword(password string) Option {
 func WithInsecure(insecure bool) Option {
 	return func(o *options) {
 		o.insecure = insecure
+	}
+}
+
+func WithKeys(keys []string) Option {
+	return func(o *options) {
+		o.keys = keys
 	}
 }
 

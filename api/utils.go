@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
@@ -21,22 +22,28 @@ type cracMeta struct {
 	Version string `json:"created,omitempty"`
 }
 
-func computeTag(files []string) (string, error) {
+func computeTag(files []string, keys []string) (string, error) {
 	tag := name.DefaultTag
-	if len(files) != 0 {
-		hashes := []string{}
-		for _, f := range files {
-			b, err := os.ReadFile(f)
-			if err != nil {
-				return "", err
-			}
-			f, _ = filepath.Abs(f)
-			b = append(fmt.Appendf(nil, "%s:", f), b...)
-			hashes = append(hashes, fmt.Sprintf("%x", sha256.Sum256(b)))
+	hashes := []string{}
+
+	for _, f := range files {
+		b, err := os.ReadFile(f)
+		if err != nil {
+			return "", err
 		}
+		f, _ = filepath.Abs(f)
+		b = append(fmt.Appendf(nil, "%s:", f), b...)
+		hashes = append(hashes, fmt.Sprintf("%x", sha256.Sum256(b)))
+	}
+
+	hashes = append(hashes, keys...)
+	sort.Strings(hashes)
+
+	if len(hashes) != 0 {
 		hash := sha256.Sum256([]byte(strings.Join(hashes, "\n")))
 		tag = hex.EncodeToString(hash[:])[0:8]
 	}
+
 	return tag, nil
 }
 

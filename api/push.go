@@ -74,7 +74,7 @@ func push(opts *options, isRemote bool) ([]byte, error) {
 	}
 	img, _ = mutate.ConfigFile(img, cf)
 
-	tag, err := computeTag(opts.depFiles)
+	tag, err := computeTag(opts.depFiles, opts.keys)
 	if err != nil {
 		return nil, err
 	}
