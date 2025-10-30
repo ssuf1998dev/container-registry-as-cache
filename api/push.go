@@ -20,6 +20,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/mutate"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
+	"github.com/ssuf1998dev/container-registry-as-cache/internal/utils"
 )
 
 func Push(opts ...Option) error {
@@ -37,10 +38,10 @@ func Push(opts ...Option) error {
 func push(opts *options, isRemote bool) ([]byte, error) {
 	base := empty.Image
 
-	meta, _ := json.Marshal(cracMeta{
-		Version: CracVersion.String(),
+	meta, _ := json.Marshal(utils.CracMeta{
+		Version: utils.CracVersion.String(),
 	})
-	metaLayer, _ := crane.Layer(map[string][]byte{fmt.Sprintf("/%s/meta.json", Crac): meta})
+	metaLayer, _ := crane.Layer(map[string][]byte{fmt.Sprintf("/%s/meta.json", utils.Crac): meta})
 	img, _ := mutate.AppendLayers(base, metaLayer)
 
 	files := make(map[string][]byte, len(opts.files))
@@ -69,18 +70,18 @@ func push(opts *options, isRemote bool) ([]byte, error) {
 	}
 	cf.Created = v1.Time{Time: time.Now()}
 	cf.History = []v1.History{
-		{Created: cf.Created, CreatedBy: CreatedByCracMeta},
-		{Created: cf.Created, CreatedBy: CreatedByCracCopy},
+		{Created: cf.Created, CreatedBy: utils.CreatedByCracMeta},
+		{Created: cf.Created, CreatedBy: utils.CreatedByCracCopy},
 	}
 	img, _ = mutate.ConfigFile(img, cf)
 
-	tag, err := computeTag(opts.depFiles, opts.keys)
+	tag, err := utils.ComputeTag(opts.depFiles, opts.keys)
 	if err != nil {
 		return nil, err
 	}
 	repo := opts.repo
 	if len(repo) == 0 {
-		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, Crac)
+		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, utils.Crac)
 	}
 	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag))
 	if err != nil {

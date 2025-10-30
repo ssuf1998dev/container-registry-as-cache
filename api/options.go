@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/ssuf1998dev/container-registry-as-cache/internal/configfile"
 )
 
 type Option func(*options)
@@ -45,8 +46,8 @@ func WithUsername(username string) Option {
 func WithLoginUsername() Option {
 	return func(o *options) {
 		o.username = func() string {
-			config, err := readConfig()
-			if err != nil || config.Auths == nil {
+			cf, err := configfile.NewConfigFile()
+			if err != nil || cf.Config.Auths == nil {
 				return o.username
 			}
 			ref, err := name.ParseReference(o.repo)
@@ -54,7 +55,7 @@ func WithLoginUsername() Option {
 				return o.username
 			}
 			key := ref.Context().RegistryStr()
-			if auth, ok := config.Auths[key]; ok {
+			if auth, ok := cf.Config.Auths[key]; ok {
 				return auth.Username
 			} else {
 				return o.username
@@ -72,8 +73,8 @@ func WithPassword(password string) Option {
 func WithLoginPassword() Option {
 	return func(o *options) {
 		o.password = func() string {
-			config, err := readConfig()
-			if err != nil || config.Auths == nil {
+			cf, err := configfile.NewConfigFile()
+			if err != nil || cf.Config.Auths == nil {
 				return o.password
 			}
 			ref, err := name.ParseReference(o.repo)
@@ -81,7 +82,7 @@ func WithLoginPassword() Option {
 				return o.password
 			}
 			key := ref.Context().RegistryStr()
-			if auth, ok := config.Auths[key]; ok {
+			if auth, ok := cf.Config.Auths[key]; ok {
 				return auth.Password
 			} else {
 				return o.password

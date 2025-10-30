@@ -12,6 +12,8 @@ import (
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
+	"github.com/ssuf1998dev/container-registry-as-cache/internal/tarhelper"
+	"github.com/ssuf1998dev/container-registry-as-cache/internal/utils"
 )
 
 func Pull(opts ...Option) error {
@@ -30,14 +32,14 @@ func pull(opts *options, output bool) ([]byte, error) {
 	tag := opts.tag
 	var err error
 	if len(tag) == 0 {
-		tag, err = computeTag(opts.depFiles, opts.keys)
+		tag, err = utils.ComputeTag(opts.depFiles, opts.keys)
 		if err != nil {
 			return nil, err
 		}
 	}
 	repo := opts.repo
 	if len(repo) == 0 {
-		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, Crac)
+		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, utils.Crac)
 	}
 	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag))
 	if err != nil {
@@ -61,30 +63,30 @@ func pull(opts *options, output bool) ([]byte, error) {
 	cf, _ := img.ConfigFile()
 	metaIndex := -1
 	for i, history := range cf.History {
-		if history.CreatedBy == CreatedByCracMeta {
+		if history.CreatedBy == utils.CreatedByCracMeta {
 			metaIndex = i
 			break
 		}
 	}
 	if metaIndex < 0 {
-		return nil, fmt.Errorf("invalid, \"%s\" not found", CreatedByCracMeta)
+		return nil, fmt.Errorf("invalid, \"%s\" not found", utils.CreatedByCracMeta)
 	}
 
 	layers, _ := img.Layers()
 	metaLayer := layers[metaIndex]
 	metaReader, _ := metaLayer.Uncompressed()
-	metaData, _ := extraFileTar(metaReader, fmt.Sprintf("/%s/meta.json", Crac))
-	var meta cracMeta
+	metaData, _ := tarhelper.ExtraFileTar(metaReader, fmt.Sprintf("/%s/meta.json", utils.Crac))
+	var meta utils.CracMeta
 	_ = json.Unmarshal(metaData, &meta)
-	if len(meta.Version) == 0 || !cracVersionConstraint.Check(semver.MustParse(meta.Version)) {
-		return nil, fmt.Errorf("invalid, version does't meet the constraint, (%s)", cracVersionConstraint.String())
+	if len(meta.Version) == 0 || !utils.CracVersionConstraint.Check(semver.MustParse(meta.Version)) {
+		return nil, fmt.Errorf("invalid, version does't meet the constraint, (%s)", utils.CracVersionConstraint.String())
 	}
 
 	cacheIndex := metaIndex + 1
 	cacheLayer := layers[cacheIndex]
 	cacheReader, _ := cacheLayer.Uncompressed()
 	if output {
-		err := untar(cacheReader, opts.workdir)
+		err := tarhelper.Untar(cacheReader, opts.workdir)
 		return nil, err
 	} else {
 		return io.ReadAll(cacheReader)

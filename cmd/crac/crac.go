@@ -5,31 +5,19 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/ssuf1998dev/container-registry-as-cache/api"
+	"github.com/ssuf1998dev/container-registry-as-cache/internal/utils"
 	"github.com/urfave/cli/v3"
 )
-
-func scan(patterns []string) ([]string, error) {
-	list := []string{}
-	for _, item := range patterns {
-		matches, err := filepath.Glob(item)
-		if err != nil {
-			return nil, err
-		}
-		list = append(list, matches...)
-	}
-	return list, nil
-}
 
 func main() {
 	cli.VersionFlag = &cli.BoolFlag{Name: "version", Aliases: []string{"V"}, Usage: "print the version"}
 
 	cmd := &cli.Command{
-		Name:    api.Crac,
+		Name:    utils.Crac,
 		Usage:   "container registry as cache",
-		Version: api.CracVersion.String(),
+		Version: utils.CracVersion.String(),
 		Commands: []*cli.Command{
 			{
 				Name:      "push",
@@ -52,11 +40,11 @@ func main() {
 					if len(repo) == 0 {
 						return fmt.Errorf("argument \"repo\" is required")
 					}
-					deps, err := scan(cmd.StringSlice("deps"))
+					deps, err := utils.GlobScanFiles(cmd.StringSlice("deps"))
 					if err != nil {
 						return err
 					}
-					files, err := scan(cmd.StringSlice("files"))
+					files, err := utils.GlobScanFiles(cmd.StringSlice("files"))
 					if err != nil {
 						return err
 					}
@@ -97,7 +85,7 @@ func main() {
 					if len(repo) == 0 {
 						return fmt.Errorf("argument \"repo\" is required")
 					}
-					deps, err := scan(cmd.StringSlice("deps"))
+					deps, err := utils.GlobScanFiles(cmd.StringSlice("deps"))
 					if err != nil {
 						return err
 					}

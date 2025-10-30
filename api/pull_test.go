@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/ssuf1998dev/container-registry-as-cache/internal/tarhelper"
+	"github.com/ssuf1998dev/container-registry-as-cache/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +16,7 @@ func TestPull(t *testing.T) {
 
 	_, err := push(&options{
 		context:  t.Context(),
-		repo:     fmt.Sprintf("localhost:5000/%s", Crac),
+		repo:     fmt.Sprintf("localhost:5000/%s", utils.Crac),
 		username: "testuser",
 		password: "testpassword",
 		insecure: true,
@@ -25,14 +27,14 @@ func TestPull(t *testing.T) {
 
 	cache, err := pull(&options{
 		context:  t.Context(),
-		repo:     fmt.Sprintf("localhost:5000/%s", Crac),
+		repo:     fmt.Sprintf("localhost:5000/%s", utils.Crac),
 		username: "testuser",
 		password: "testpassword",
 		insecure: true,
 		depFiles: deps,
 	}, false)
 	require.NoError(t, err)
-	b, err := extraFileTar(bytes.NewReader(cache), "../testdata/foo")
+	b, err := tarhelper.ExtraFileTar(bytes.NewReader(cache), "../testdata/foo")
 	require.NoError(t, err)
 	assert.Equal(t, string(b), "bar")
 }
