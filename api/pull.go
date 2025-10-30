@@ -32,7 +32,12 @@ func pull(opts *options, output bool) ([]byte, error) {
 	tag := opts.tag
 	var err error
 	if len(tag) == 0 {
-		tag, err = utils.ComputeTag(opts.depFiles, opts.keys)
+		var keys []string
+		keys = append(keys, opts.keys...)
+		if len(opts.platform) > 0 {
+			keys = append(keys, opts.platform)
+		}
+		tag, err = utils.ComputeTag(opts.depFiles, keys)
 		if err != nil {
 			return nil, err
 		}

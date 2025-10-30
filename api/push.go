@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"runtime"
-	"strings"
 	"time"
 
 	"github.com/google/go-containerregistry/pkg/authn"
@@ -60,14 +58,6 @@ func push(opts *options, isRemote bool) ([]byte, error) {
 
 	cf, _ := img.ConfigFile()
 	cf = cf.DeepCopy()
-	if len(opts.platform) > 0 {
-		archOs := strings.SplitN(opts.platform, "/", 2)
-		cf.OS = archOs[0]
-		cf.Architecture = archOs[1]
-	} else {
-		cf.OS = runtime.GOOS
-		cf.Architecture = runtime.GOARCH
-	}
 	cf.Created = v1.Time{Time: time.Now()}
 	cf.History = []v1.History{
 		{Created: cf.Created, CreatedBy: utils.CreatedByCracMeta},
@@ -75,7 +65,12 @@ func push(opts *options, isRemote bool) ([]byte, error) {
 	}
 	img, _ = mutate.ConfigFile(img, cf)
 
-	tag, err := utils.ComputeTag(opts.depFiles, opts.keys)
+	var keys []string
+	keys = append(keys, opts.keys...)
+	if len(opts.platform) > 0 {
+		keys = append(keys, opts.platform)
+	}
+	tag, err := utils.ComputeTag(opts.depFiles, keys)
 	if err != nil {
 		return nil, err
 	}
