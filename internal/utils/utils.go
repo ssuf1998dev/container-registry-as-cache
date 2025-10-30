@@ -27,7 +27,7 @@ func ComputeTag(files []string, keys []string) (string, error) {
 			return "", err
 		}
 		f, _ = filepath.Abs(f)
-		b = append(fmt.Appendf(nil, "%s:", f), b...)
+		b = append(fmt.Appendf(nil, "%s\n", f), b...)
 		hashes = append(hashes, fmt.Sprintf("%x", sha256.Sum256(b)))
 	}
 
