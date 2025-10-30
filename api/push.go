@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/goccy/go-yaml"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
@@ -36,10 +36,10 @@ func Push(opts ...Option) error {
 func push(opts *options, isRemote bool) ([]byte, error) {
 	base := empty.Image
 
-	meta, _ := json.Marshal(utils.CracMeta{
+	meta, _ := yaml.Marshal(utils.CracMeta{
 		Version: utils.CracVersion.String(),
 	})
-	metaLayer, _ := crane.Layer(map[string][]byte{fmt.Sprintf("/%s/meta.json", utils.Crac): meta})
+	metaLayer, _ := crane.Layer(map[string][]byte{fmt.Sprintf("/%s/meta.yaml", utils.Crac): meta})
 	img, _ := mutate.AppendLayers(base, metaLayer)
 
 	files := make(map[string][]byte, len(opts.files))

@@ -13,7 +13,7 @@ import (
 )
 
 type CracMeta struct {
-	Version string `json:"created,omitempty"`
+	Version string `yaml:"version,omitempty"`
 }
 
 func ComputeTag(files []string, keys []string) (string, error) {
@@ -21,6 +21,7 @@ func ComputeTag(files []string, keys []string) (string, error) {
 	hashes := []string{}
 
 	for _, f := range files {
+		f = strings.TrimSpace(f)
 		b, err := os.ReadFile(f)
 		if err != nil {
 			return "", err

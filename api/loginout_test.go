@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var f = "../testdata/config.json"
+var f = "../testdata/config.yaml"
 
 func login(t *testing.T) *configfile.ConfigFile {
 	err := Login(

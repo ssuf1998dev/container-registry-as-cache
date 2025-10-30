@@ -8,7 +8,7 @@ import (
 )
 
 func TestWrite(t *testing.T) {
-	opts := &NewOptions{File: "../../testdata/config.json"}
+	opts := &NewOptions{File: "../../testdata/config.yaml"}
 	cf := NewConfigFile(opts)
 	err := cf.Read()
 	require.NoError(t, err)

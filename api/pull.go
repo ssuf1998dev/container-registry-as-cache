@@ -3,12 +3,12 @@ package api
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/goccy/go-yaml"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -80,9 +80,9 @@ func pull(opts *options, output bool) ([]byte, error) {
 	layers, _ := img.Layers()
 	metaLayer := layers[metaIndex]
 	metaReader, _ := metaLayer.Uncompressed()
-	metaData, _ := tarhelper.ExtraFileTar(metaReader, fmt.Sprintf("/%s/meta.json", utils.Crac))
+	metaData, _ := tarhelper.ExtraFileTar(metaReader, fmt.Sprintf("/%s/meta.yaml", utils.Crac))
 	var meta utils.CracMeta
-	_ = json.Unmarshal(metaData, &meta)
+	_ = yaml.Unmarshal(metaData, &meta)
 	if len(meta.Version) == 0 || !utils.CracVersionConstraint.Check(semver.MustParse(meta.Version)) {
 		return nil, fmt.Errorf("invalid, version does't meet the constraint, (%s)", utils.CracVersionConstraint.String())
 	}

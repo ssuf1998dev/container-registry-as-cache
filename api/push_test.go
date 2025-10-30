@@ -4,12 +4,12 @@ import (
 	"archive/tar"
 	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -47,9 +47,9 @@ func TestPushLocal(t *testing.T) {
 	var meta utils.CracMeta
 	for h, err := metaTar.Next(); err != io.EOF; h, err = metaTar.Next() {
 		require.NoError(t, err)
-		if h.Name == fmt.Sprintf("/%s/meta.json", utils.Crac) {
+		if h.Name == fmt.Sprintf("/%s/meta.yaml", utils.Crac) {
 			b, _ := io.ReadAll(metaTar)
-			_ = json.Unmarshal(b, &meta)
+			_ = yaml.Unmarshal(b, &meta)
 			break
 		}
 	}

@@ -29,18 +29,49 @@ func main() {
 					&cli.StringArg{Name: "repo"},
 				},
 				Flags: []cli.Flag{
-					&cli.StringSliceFlag{Name: "key", Usage: "key(s) for computing cache image tag", Aliases: []string{"K"}},
-					&cli.StringSliceFlag{Name: "dep", Usage: "dependent file(s) for computing cache image tag, glob supported", Aliases: []string{"d"}},
-					&cli.StringSliceFlag{Name: "file", Usage: "cache file(s) to make image, glob supported", Aliases: []string{"f"}},
-					&cli.StringFlag{Name: "platform", Usage: "platform of cache, it will be a part of keys changing tag", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)},
-					&cli.StringFlag{Name: "username", Usage: "username for authenticating to a registry", Aliases: []string{"u"}},
-					&cli.StringFlag{Name: "password", Usage: "password for authenticating to a registry", Aliases: []string{"p"}},
-					&cli.BoolFlag{Name: "insecure", Usage: "skip ssl verify for the remote registry", Aliases: []string{"k"}},
+					&cli.StringSliceFlag{
+						Name: "key", Aliases: []string{"K"}, Category: "cache",
+						Usage: "key(s) for computing cache image tag",
+					},
+					&cli.StringSliceFlag{
+						Name: "dep", Aliases: []string{"d"}, Category: "cache",
+						Usage: "dependent file(s) for computing cache image tag, glob supported",
+					},
+					&cli.StringSliceFlag{
+						Name: "file", Aliases: []string{"f"}, Category: "cache",
+						Usage: "cache file(s) to make image, glob supported",
+					},
+					&cli.StringFlag{
+						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "cache",
+						Usage: "platform of cache, it will be a part of keys changing tag",
+					},
+
+					&cli.StringFlag{
+						Name: "profile", Category: "profile",
+						Usage: "a series of pre-set configurations",
+					},
+					&cli.StringFlag{
+						Name: "profile-file", Category: "profile",
+						Usage: "read profile from file, if set will ignore \"profile\"",
+					},
+
+					&cli.StringFlag{
+						Name: "username", Aliases: []string{"u"}, Category: "authentication",
+						Usage: "username for authenticating to a registry",
+					},
+					&cli.StringFlag{
+						Name: "password", Aliases: []string{"p"}, Category: "authentication",
+						Usage: "password for authenticating to a registry",
+					},
+					&cli.BoolFlag{
+						Name: "insecure", Aliases: []string{"k"}, Category: "authentication",
+						Usage: "skip ssl verify for the remote registry",
+					},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					repo := cmd.StringArg("repo")
 					if len(repo) == 0 {
-						return fmt.Errorf("argument \"repo\" is required")
+						return fmt.Errorf("argument repository is required")
 					}
 					deps, err := utils.GlobScanFiles(cmd.StringSlice("dep"))
 					if err != nil {
@@ -49,6 +80,11 @@ func main() {
 					files, err := utils.GlobScanFiles(cmd.StringSlice("file"))
 					if err != nil {
 						return err
+					}
+					profile := cmd.String("profile")
+					profileFile := cmd.String("profile-file")
+					if len(profileFile) != 0 {
+						profile = profileFile
 					}
 
 					return api.Push(
@@ -63,6 +99,7 @@ func main() {
 						api.WithDepFiles(deps),
 						api.WithFiles(files),
 						api.WithPlatform(cmd.String("platform")),
+						api.WithProfile(profile, len(profileFile) != 0),
 					)
 				},
 			},
@@ -75,23 +112,62 @@ func main() {
 					&cli.StringArg{Name: "repo"},
 				},
 				Flags: []cli.Flag{
-					&cli.StringSliceFlag{Name: "keys", Usage: "key(s) for computing cache image tag", Aliases: []string{"K"}},
-					&cli.StringSliceFlag{Name: "deps", Usage: "dependent file(s) for computing cache image tag, glob supported", Aliases: []string{"d"}},
-					&cli.StringFlag{Name: "tag", Usage: "specific a tag to pull", Aliases: []string{"t"}},
-					&cli.StringFlag{Name: "workdir", Usage: "working directory where to uncompress file(s) to", Aliases: []string{"w"}},
-					&cli.StringFlag{Name: "platform", Usage: "platform of cache, it will be a part of keys changing tag", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)},
-					&cli.StringFlag{Name: "username", Usage: "username for authenticating to a registry", Aliases: []string{"u"}},
-					&cli.StringFlag{Name: "password", Usage: "password for authenticating to a registry", Aliases: []string{"p"}},
-					&cli.BoolFlag{Name: "insecure", Usage: "skip ssl verify for the remote registry", Aliases: []string{"k"}},
+					&cli.StringSliceFlag{
+						Name: "keys", Aliases: []string{"K"}, Category: "cache",
+						Usage: "key(s) for computing cache image tag",
+					},
+					&cli.StringSliceFlag{
+						Name: "deps", Aliases: []string{"d"}, Category: "cache",
+						Usage: "dependent file(s) for computing cache image tag, glob supported",
+					},
+					&cli.StringFlag{
+						Name: "tag", Aliases: []string{"t"}, Category: "cache",
+						Usage: "specific a tag to pull",
+					},
+					&cli.StringFlag{
+						Name: "workdir", Aliases: []string{"w"}, Category: "cache",
+						Usage: "working directory where to uncompress file(s) to",
+					},
+					&cli.StringFlag{
+						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "cache",
+						Usage: "platform of cache, it will be a part of keys changing tag",
+					},
+
+					&cli.StringFlag{
+						Name: "profile", Category: "profile",
+						Usage: "a series of pre-set configurations",
+					},
+					&cli.StringFlag{
+						Name: "profile-file", Category: "profile",
+						Usage: "read profile from file,  if set will ignore \"profile\"",
+					},
+
+					&cli.StringFlag{
+						Name: "username", Aliases: []string{"u"}, Category: "authentication",
+						Usage: "username for authenticating to a registry",
+					},
+					&cli.StringFlag{
+						Name: "password", Aliases: []string{"p"}, Category: "authentication",
+						Usage: "password for authenticating to a registry",
+					},
+					&cli.BoolFlag{
+						Name: "insecure", Aliases: []string{"k"}, Category: "authentication",
+						Usage: "skip ssl verify for the remote registry",
+					},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					repo := cmd.StringArg("repo")
 					if len(repo) == 0 {
-						return fmt.Errorf("argument \"repo\" is required")
+						return fmt.Errorf("argument repository is required")
 					}
 					deps, err := utils.GlobScanFiles(cmd.StringSlice("deps"))
 					if err != nil {
 						return err
+					}
+					profile := cmd.String("profile")
+					profileFile := cmd.String("profile-file")
+					if len(profileFile) != 0 {
+						profile = profileFile
 					}
 
 					return api.Pull(
@@ -107,6 +183,7 @@ func main() {
 						api.WithTag(cmd.String("tag")),
 						api.WithWorkdir(cmd.String("workdir")),
 						api.WithPlatform(cmd.String("platform")),
+						api.WithProfile(profile, len(profileFile) != 0),
 					)
 				},
 			},

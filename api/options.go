@@ -2,9 +2,12 @@ package api
 
 import (
 	"context"
+	"os"
 
+	"github.com/goccy/go-yaml"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/ssuf1998dev/container-registry-as-cache/internal/configfile"
+	cracprofile "github.com/ssuf1998dev/container-registry-as-cache/internal/profile"
 )
 
 type Option func(*options)
@@ -140,5 +143,33 @@ func WithWorkdir(workdir string) Option {
 func withConfigfile(configfile string) Option {
 	return func(o *options) {
 		o.configfile = configfile
+	}
+}
+
+func WithProfile(profile string, file bool) Option {
+	return func(o *options) {
+		if !file {
+			switch profile {
+			case "pnpm":
+				o.keys = append(o.keys, cracprofile.ProfilePnpm.Keys...)
+				o.depFiles = append(o.depFiles, cracprofile.ProfilePnpm.DepFiles...)
+				o.files = append(o.keys, cracprofile.ProfilePnpm.Files...)
+			}
+			return
+		}
+
+		b, _ := os.ReadFile(profile)
+		rendered, err := cracprofile.Render(string(b))
+		if err != nil {
+			return
+		}
+		var p cracprofile.Profile
+		err = yaml.Unmarshal(rendered, &p)
+		if err != nil {
+			return
+		}
+		o.keys = append(o.keys, p.Keys...)
+		o.depFiles = append(o.depFiles, p.DepFiles...)
+		o.files = append(o.keys, p.Files...)
 	}
 }

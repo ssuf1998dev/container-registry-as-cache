@@ -1,22 +1,22 @@
 package configfile
 
 import (
-	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
 
+	"github.com/goccy/go-yaml"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/ssuf1998dev/container-registry-as-cache/internal/utils"
 )
 
 type ConfigAuth struct {
-	Username string `json:"usename,omitempty"`
-	Password string `json:"password,omitempty"`
+	Username string `yaml:"usename,omitempty"`
+	Password string `yaml:"password,omitempty"`
 }
 
 type Config struct {
-	Auths map[string]ConfigAuth `json:"auths,omitempty"`
+	Auths map[string]ConfigAuth `yaml:"auths,omitempty"`
 }
 
 type ConfigFile struct {
@@ -34,7 +34,7 @@ func NewConfigFile(opts *NewOptions) *ConfigFile {
 		dir := appdir.New(utils.Crac).UserConfig()
 		return &ConfigFile{
 			dir:  dir,
-			file: filepath.Join(dir, "config.json"),
+			file: filepath.Join(dir, "config.yaml"),
 		}
 	}
 	return &ConfigFile{
@@ -62,7 +62,7 @@ func (cf *ConfigFile) ready() error {
 
 	if len(b) == 0 {
 		config := &Config{Auths: map[string]ConfigAuth{}}
-		b, err := json.MarshalIndent(config, "", "  ")
+		b, err := yaml.Marshal(config)
 		if err != nil {
 			return err
 		}
@@ -87,7 +87,7 @@ func (cf *ConfigFile) Read() error {
 	}
 
 	var config Config
-	err = json.Unmarshal(b, &config)
+	err = yaml.Unmarshal(b, &config)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (cf *ConfigFile) Write() error {
 		return err
 	}
 
-	b, err := json.MarshalIndent(cf.Config, "", "  ")
+	b, err := yaml.Marshal(cf.Config)
 	if err != nil {
 		return err
 	}
