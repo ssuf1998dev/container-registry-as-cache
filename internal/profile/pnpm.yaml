@@ -1,4 +1,4 @@
 deps:
   - "**/pnpm-lock.yaml"
 files:
-  - '{{"pnpm store path" | sh | trim | trimSuffix "/"}}/**'
+  - '{{"pnpm store path" | sh | trim | rel cwd }}/**'

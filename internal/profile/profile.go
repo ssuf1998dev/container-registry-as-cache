@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -44,6 +46,8 @@ var funcs = template.FuncMap{
 		}
 		return buf.String(), nil
 	},
+	"rel": filepath.Rel,
+	"cwd": os.Getwd,
 }
 
 func Render(text string) ([]byte, error) {
