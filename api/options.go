@@ -23,6 +23,8 @@ type options struct {
 
 	tag     string
 	workdir string
+
+	configfile string
 }
 
 func WithContext(ctx context.Context) Option {
@@ -46,7 +48,8 @@ func WithUsername(username string) Option {
 func WithLoginUsername() Option {
 	return func(o *options) {
 		o.username = func() string {
-			cf, err := configfile.NewConfigFile()
+			cf := configfile.NewConfigFile(nil)
+			err := cf.Read()
 			if err != nil || cf.Config.Auths == nil {
 				return o.username
 			}
@@ -73,7 +76,8 @@ func WithPassword(password string) Option {
 func WithLoginPassword() Option {
 	return func(o *options) {
 		o.password = func() string {
-			cf, err := configfile.NewConfigFile()
+			cf := configfile.NewConfigFile(nil)
+			err := cf.Read()
 			if err != nil || cf.Config.Auths == nil {
 				return o.password
 			}
@@ -130,5 +134,11 @@ func WithTag(tag string) Option {
 func WithWorkdir(workdir string) Option {
 	return func(o *options) {
 		o.workdir = workdir
+	}
+}
+
+func withConfigfile(configfile string) Option {
+	return func(o *options) {
+		o.configfile = configfile
 	}
 }

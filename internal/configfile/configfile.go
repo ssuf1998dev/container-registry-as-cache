@@ -20,31 +20,37 @@ type Config struct {
 }
 
 type ConfigFile struct {
-	Dir    string
-	File   string
+	dir    string
+	file   string
 	Config *Config
 }
 
-func NewConfigFile() (*ConfigFile, error) {
-	dir := appdir.New(utils.Crac).UserConfig()
-	cf := &ConfigFile{
-		Dir:  dir,
-		File: filepath.Join(dir, "config.json"),
-	}
-	if err := cf.ReadConfig(); err != nil {
-		return nil, err
-	}
-	return cf, nil
+type NewOptions struct {
+	File string
 }
 
-func (cf *ConfigFile) ReadConfig() error {
-	if _, err := os.Stat(cf.Dir); err != nil {
-		if err := os.MkdirAll(cf.Dir, 0755); err != nil {
+func NewConfigFile(opts *NewOptions) *ConfigFile {
+	if opts == nil || len(opts.File) == 0 {
+		dir := appdir.New(utils.Crac).UserConfig()
+		return &ConfigFile{
+			dir:  dir,
+			file: filepath.Join(dir, "config.json"),
+		}
+	}
+	return &ConfigFile{
+		dir:  filepath.Dir(opts.File),
+		file: opts.File,
+	}
+}
+
+func (cf *ConfigFile) ready() error {
+	if _, err := os.Stat(cf.dir); err != nil {
+		if err := os.MkdirAll(cf.dir, 0755); err != nil {
 			return err
 		}
 	}
 
-	f, err := os.OpenFile(cf.File, os.O_CREATE|os.O_RDWR, 0644)
+	f, err := os.OpenFile(cf.file, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		return err
 	}
@@ -64,8 +70,20 @@ func (cf *ConfigFile) ReadConfig() error {
 		if err != nil {
 			return err
 		}
-		cf.Config = config
 		return nil
+	}
+	return nil
+}
+
+func (cf *ConfigFile) Read() error {
+	err := cf.ready()
+	if err != nil {
+		return err
+	}
+
+	b, err := os.ReadFile(cf.file)
+	if err != nil {
+		return err
 	}
 
 	var config Config
@@ -77,8 +95,8 @@ func (cf *ConfigFile) ReadConfig() error {
 	return nil
 }
 
-func (cf *ConfigFile) WriteConfig() error {
-	err := cf.ReadConfig()
+func (cf *ConfigFile) Write() error {
+	err := cf.ready()
 	if err != nil {
 		return err
 	}
@@ -87,5 +105,13 @@ func (cf *ConfigFile) WriteConfig() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(cf.File, b, 0644)
+	return os.WriteFile(cf.file, b, 0644)
+}
+
+func (cf *ConfigFile) Reset() error {
+	err := os.Remove(cf.file)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }

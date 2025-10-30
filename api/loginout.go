@@ -15,8 +15,8 @@ func Login(opts ...Option) error {
 		option(o)
 	}
 
-	cf, err := configfile.NewConfigFile()
-	if err != nil {
+	cf := configfile.NewConfigFile(&configfile.NewOptions{File: o.configfile})
+	if err := cf.Read(); err != nil {
 		return err
 	}
 
@@ -32,7 +32,7 @@ func Login(opts ...Option) error {
 		Username: o.username,
 		Password: o.password,
 	}
-	return cf.WriteConfig()
+	return cf.Write()
 }
 
 func Logout(opts ...Option) error {
@@ -43,8 +43,8 @@ func Logout(opts ...Option) error {
 		option(o)
 	}
 
-	cf, err := configfile.NewConfigFile()
-	if err != nil {
+	cf := configfile.NewConfigFile(&configfile.NewOptions{File: o.configfile})
+	if err := cf.Read(); err != nil {
 		return err
 	}
 
@@ -55,5 +55,5 @@ func Logout(opts ...Option) error {
 	key := ref.Context().RegistryStr()
 	delete(cf.Config.Auths, key)
 
-	return cf.WriteConfig()
+	return cf.Write()
 }
