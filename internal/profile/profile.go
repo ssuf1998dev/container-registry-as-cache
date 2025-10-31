@@ -22,13 +22,7 @@ type Profile struct {
 }
 
 //go:embed pnpm.yaml
-var pnpm string
-var ProfilePnpm Profile
-
-func init() {
-	rendered, _ := Render(pnpm)
-	_ = yaml.Unmarshal(rendered, &ProfilePnpm)
-}
+var Pnpm string
 
 var funcs = template.FuncMap{
 	"sh": func(cmd string) (string, error) {
@@ -50,7 +44,7 @@ var funcs = template.FuncMap{
 	"cwd": os.Getwd,
 }
 
-func Render(text string) ([]byte, error) {
+func Render(text string) (*Profile, error) {
 	tpl, err := template.New("").Funcs(funcs).Funcs(sprig.FuncMap()).Parse(text)
 	if err != nil {
 		return nil, err
@@ -59,5 +53,9 @@ func Render(text string) ([]byte, error) {
 	if err = tpl.Execute(&buf, nil); err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	var p Profile
+	if err := yaml.Unmarshal(buf.Bytes(), &p); err != nil {
+		return nil, err
+	}
+	return &p, nil
 }
