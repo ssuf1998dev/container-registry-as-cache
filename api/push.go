@@ -29,11 +29,11 @@ func Push(opts ...Option) error {
 		option(o)
 	}
 
-	_, err := push(o, true)
+	_, err := push(o)
 	return err
 }
 
-func push(opts *options, isRemote bool) ([]byte, error) {
+func push(opts *options) ([]byte, error) {
 	base := empty.Image
 
 	meta, _ := yaml.Marshal(utils.CracMeta{
@@ -82,24 +82,39 @@ func push(opts *options, isRemote bool) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if isRemote {
-		transport := remote.DefaultTransport.(*http.Transport)
-		if opts.insecure {
-			transport = transport.Clone()
-			transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-		}
-		err = remote.Write(
-			ref, img,
-			remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}),
-			remote.WithTransport(transport),
-			remote.WithContext(opts.context),
-		)
+
+	if opts.outputStdout {
+		err := tarball.Write(ref, img, os.Stdout)
 		return nil, err
-	} else {
+	}
+
+	if opts.outputBytes {
 		var buf bytes.Buffer
 		if err := tarball.Write(ref, img, &buf); err != nil {
 			return nil, err
 		}
 		return buf.Bytes(), nil
 	}
+
+	if len(opts.outputFile) != 0 {
+		f, err := os.OpenFile(opts.outputFile, os.O_CREATE|os.O_RDWR, 0644)
+		if err != nil {
+			return nil, err
+		}
+		err = tarball.Write(ref, img, f)
+		return nil, err
+	}
+
+	transport := remote.DefaultTransport.(*http.Transport)
+	if opts.insecure {
+		transport = transport.Clone()
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+	err = remote.Write(
+		ref, img,
+		remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}),
+		remote.WithTransport(transport),
+		remote.WithContext(opts.context),
+	)
+	return nil, err
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/goccy/go-yaml"
@@ -24,11 +25,11 @@ func Pull(opts ...Option) error {
 		option(o)
 	}
 
-	_, err := pull(o, true)
+	_, err := pull(o)
 	return err
 }
 
-func pull(opts *options, output bool) ([]byte, error) {
+func pull(opts *options) ([]byte, error) {
 	tag := opts.tag
 	var err error
 	if len(tag) == 0 {
@@ -90,10 +91,16 @@ func pull(opts *options, output bool) ([]byte, error) {
 	cacheIndex := metaIndex + 1
 	cacheLayer := layers[cacheIndex]
 	cacheReader, _ := cacheLayer.Uncompressed()
-	if output {
-		err := tarhelper.Untar(cacheReader, opts.workdir)
+
+	if opts.outputStdout {
+		_, err := io.Copy(os.Stdout, cacheReader)
 		return nil, err
-	} else {
+	}
+
+	if opts.outputBytes {
 		return io.ReadAll(cacheReader)
 	}
+
+	err = tarhelper.Untar(cacheReader, opts.workdir)
+	return nil, err
 }

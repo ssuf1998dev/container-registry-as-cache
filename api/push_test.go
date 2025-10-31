@@ -21,9 +21,10 @@ import (
 
 func TestPushLocal(t *testing.T) {
 	data, err := push(&options{
-		depFiles: []string{"../testdata/foo"},
-		files:    []string{"../testdata/foo"},
-	}, false)
+		depFiles:    []string{"../testdata/foo"},
+		files:       []string{"../testdata/foo"},
+		outputBytes: true,
+	})
 	require.NoError(t, err)
 
 	mft, err := tarball.LoadManifest(func() (io.ReadCloser, error) {
@@ -65,7 +66,7 @@ func TestPushRemote(t *testing.T) {
 		insecure: true,
 		depFiles: []string{"../testdata/foo"},
 		files:    []string{"../testdata/foo"},
-	}, true)
+	})
 	require.NoError(t, err)
 
 	transport := remote.DefaultTransport.(*http.Transport).Clone()

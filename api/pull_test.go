@@ -22,7 +22,7 @@ func TestPull(t *testing.T) {
 		insecure: true,
 		depFiles: deps,
 		files:    []string{"../testdata/foo"},
-	}, true)
+	})
 	require.NoError(t, err)
 
 	cache, err := pull(&options{
@@ -32,7 +32,8 @@ func TestPull(t *testing.T) {
 		password: "testpassword",
 		insecure: true,
 		depFiles: deps,
-	}, false)
+		outputBytes: true,
+	})
 	require.NoError(t, err)
 	b, err := tarhelper.ExtraFileTar(bytes.NewReader(cache), "../testdata/foo")
 	require.NoError(t, err)

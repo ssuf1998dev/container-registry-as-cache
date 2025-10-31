@@ -27,6 +27,10 @@ type options struct {
 	workdir string
 
 	configfile string
+
+	outputStdout bool
+	outputBytes  bool
+	outputFile   string
 }
 
 func WithContext(ctx context.Context) Option {
@@ -169,5 +173,23 @@ func WithProfile(profile string, file bool) Option {
 			o.depFiles = append(o.depFiles, p.DepFiles...)
 			o.files = append(o.keys, p.Files...)
 		}
+	}
+}
+
+func WithOutputStdout(enable bool) Option {
+	return func(o *options) {
+		o.outputStdout = enable
+	}
+}
+
+// func withOutputBytes(enable bool) Option {
+// 	return func(o *options) {
+// 		o.outputBytes = enable
+// 	}
+// }
+
+func WithOutputFile(file string) Option {
+	return func(o *options) {
+		o.outputFile = file
 	}
 }

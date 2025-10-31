@@ -30,41 +30,45 @@ func main() {
 				},
 				Flags: []cli.Flag{
 					&cli.StringSliceFlag{
-						Name: "key", Aliases: []string{"K"}, Category: "cache",
+						Name: "key", Aliases: []string{"K"}, Category: "BASIC",
 						Usage: "key(s) for computing cache image tag",
 					},
 					&cli.StringSliceFlag{
-						Name: "dep", Aliases: []string{"d"}, Category: "cache",
+						Name: "dep", Aliases: []string{"d"}, Category: "BASIC",
 						Usage: "dependent file(s) for computing cache image tag, glob supported",
 					},
 					&cli.StringSliceFlag{
-						Name: "file", Aliases: []string{"f"}, Category: "cache",
+						Name: "file", Aliases: []string{"f"}, Category: "BASIC",
 						Usage: "cache file(s) to make image, glob supported",
 					},
 					&cli.StringFlag{
-						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "cache",
+						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "BASIC",
 						Usage: "platform of cache, it will be a part of keys changing tag",
+					},
+					&cli.StringFlag{
+						Name: "output", Aliases: []string{"o"}, Category: "BASIC",
+						Usage: "output where, could be stdout or file",
 					},
 
 					&cli.StringFlag{
-						Name: "profile", Category: "profile",
+						Name: "profile", Category: "PROFILE",
 						Usage: "a series of pre-set configurations",
 					},
 					&cli.StringFlag{
-						Name: "profile-file", Category: "profile",
+						Name: "profile-file", Category: "PROFILE",
 						Usage: "read profile from file, if set will ignore \"profile\"",
 					},
 
 					&cli.StringFlag{
-						Name: "username", Aliases: []string{"u"}, Category: "authentication",
+						Name: "username", Aliases: []string{"u"}, Category: "AUTH",
 						Usage: "username for authenticating to a registry",
 					},
 					&cli.StringFlag{
-						Name: "password", Aliases: []string{"p"}, Category: "authentication",
+						Name: "password", Aliases: []string{"p"}, Category: "AUTH",
 						Usage: "password for authenticating to a registry",
 					},
 					&cli.BoolFlag{
-						Name: "insecure", Aliases: []string{"k"}, Category: "authentication",
+						Name: "insecure", Category: "AUTH",
 						Usage: "skip ssl verify for the remote registry",
 					},
 				},
@@ -87,6 +91,8 @@ func main() {
 						profile = profileFile
 					}
 
+					output := cmd.String("output")
+
 					return api.Push(
 						api.WithContext(context.Background()),
 						api.WithRepository(repo),
@@ -100,6 +106,8 @@ func main() {
 						api.WithFiles(files),
 						api.WithPlatform(cmd.String("platform")),
 						api.WithProfile(profile, len(profileFile) != 0),
+						api.WithOutputStdout(output == "stdout"),
+						api.WithOutputFile(output),
 					)
 				},
 			},
@@ -113,45 +121,49 @@ func main() {
 				},
 				Flags: []cli.Flag{
 					&cli.StringSliceFlag{
-						Name: "keys", Aliases: []string{"K"}, Category: "cache",
+						Name: "keys", Aliases: []string{"k"}, Category: "BASIC",
 						Usage: "key(s) for computing cache image tag",
 					},
 					&cli.StringSliceFlag{
-						Name: "deps", Aliases: []string{"d"}, Category: "cache",
+						Name: "deps", Aliases: []string{"d"}, Category: "BASIC",
 						Usage: "dependent file(s) for computing cache image tag, glob supported",
 					},
 					&cli.StringFlag{
-						Name: "tag", Aliases: []string{"t"}, Category: "cache",
+						Name: "tag", Aliases: []string{"t"}, Category: "BASIC",
 						Usage: "specific a tag to pull",
 					},
 					&cli.StringFlag{
-						Name: "workdir", Aliases: []string{"w"}, Category: "cache",
+						Name: "workdir", Aliases: []string{"w"}, Category: "BASIC",
 						Usage: "working directory where to uncompress file(s) to",
 					},
 					&cli.StringFlag{
-						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "cache",
+						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "BASIC",
 						Usage: "platform of cache, it will be a part of keys changing tag",
+					},
+					&cli.BoolFlag{
+						Name: "stdout", Category: "BASIC",
+						Usage: "output to stdout",
 					},
 
 					&cli.StringFlag{
-						Name: "profile", Category: "profile",
+						Name: "profile", Category: "PROFILE",
 						Usage: "a series of pre-set configurations",
 					},
 					&cli.StringFlag{
-						Name: "profile-file", Category: "profile",
+						Name: "profile-file", Category: "PROFILE",
 						Usage: "read profile from file,  if set will ignore \"profile\"",
 					},
 
 					&cli.StringFlag{
-						Name: "username", Aliases: []string{"u"}, Category: "authentication",
+						Name: "username", Aliases: []string{"u"}, Category: "AUTH",
 						Usage: "username for authenticating to a registry",
 					},
 					&cli.StringFlag{
-						Name: "password", Aliases: []string{"p"}, Category: "authentication",
+						Name: "password", Aliases: []string{"p"}, Category: "AUTH",
 						Usage: "password for authenticating to a registry",
 					},
 					&cli.BoolFlag{
-						Name: "insecure", Aliases: []string{"k"}, Category: "authentication",
+						Name: "insecure", Category: "AUTH",
 						Usage: "skip ssl verify for the remote registry",
 					},
 				},
@@ -184,6 +196,7 @@ func main() {
 						api.WithWorkdir(cmd.String("workdir")),
 						api.WithPlatform(cmd.String("platform")),
 						api.WithProfile(profile, len(profileFile) != 0),
+						api.WithOutputStdout(cmd.Bool("stdout")),
 					)
 				},
 			},
