@@ -22,6 +22,7 @@ type options struct {
 	keys     []string
 	depFiles map[string]string
 	files    map[string]string
+	limit    int
 	platform string
 
 	tag     string
@@ -123,6 +124,12 @@ func WithDepFiles(depFiles map[string]string) Option {
 func WithFiles(files map[string]string) Option {
 	return func(o *options) {
 		o.files = files
+	}
+}
+
+func WithLimit(limit int) Option {
+	return func(o *options) {
+		o.limit = limit
 	}
 }
 

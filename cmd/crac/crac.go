@@ -41,6 +41,10 @@ func main() {
 						Name: "file", Aliases: []string{"f"}, Category: "BASIC",
 						Usage: "cache file(s) to make image, glob supported",
 					},
+					&cli.IntFlag{
+						Name: "limit", Value: 1024 * 1024 * 128, Category: "BASIC",
+						Usage: "max size of every cache layer in bytes",
+					},
 					&cli.StringFlag{
 						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "BASIC",
 						Usage: "platform of cache, it will be a part of keys changing tag",
@@ -104,6 +108,7 @@ func main() {
 						api.WithKeys(cmd.StringSlice("key")),
 						api.WithDepFiles(deps),
 						api.WithFiles(files),
+						api.WithLimit(cmd.Int("limit")),
 						api.WithPlatform(cmd.String("platform")),
 						api.WithProfile(profile, len(profileFile) != 0),
 						api.WithOutputStdout(output == "stdout"),

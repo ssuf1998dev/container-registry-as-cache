@@ -5,14 +5,18 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/goccy/go-yaml"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
+	"github.com/ssuf1998dev/container-registry-as-cache/internal/tarhelper"
 	"github.com/ssuf1998dev/container-registry-as-cache/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,19 +44,21 @@ func TestPush_Local(t *testing.T) {
 	}, nil)
 	require.NoError(t, err)
 
+	cf, _ := img.ConfigFile()
+	metaIndex := slices.IndexFunc(cf.History, func(h v1.History) bool {
+		return h.CreatedBy == utils.CreatedByCracMeta
+	})
+	require.GreaterOrEqual(t, metaIndex, 0)
 	layers, _ := img.Layers()
-	metaLayer := layers[0]
+	metaLayer := layers[metaIndex]
 	metaReader, _ := metaLayer.Uncompressed()
-	metaTar := tar.NewReader(metaReader)
 	var meta utils.CracMeta
-	for h, err := metaTar.Next(); err != io.EOF; h, err = metaTar.Next() {
-		require.NoError(t, err)
-		if h.Name == fmt.Sprintf("/%s/meta.yaml", utils.Crac) {
-			b, _ := io.ReadAll(metaTar)
-			_ = yaml.Unmarshal(b, &meta)
-			break
+	tarhelper.WalkTar(metaReader, func(header *tar.Header, fi os.FileInfo, data []byte) (bool, error) {
+		if header.Name == fmt.Sprintf("/%s/meta.yaml", utils.Crac) {
+			return true, yaml.Unmarshal(data, &meta)
 		}
-	}
+		return false, nil
+	})
 	assert.Equal(t, utils.CracVersion.String(), meta.Version)
 }
 

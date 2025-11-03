@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/goccy/go-yaml"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/ssuf1998dev/container-registry-as-cache/internal/tarhelper"
 	"github.com/ssuf1998dev/container-registry-as-cache/internal/utils"
@@ -27,9 +29,8 @@ func Pull(opts ...Option) error {
 	return err
 }
 
-func pull(opts *options) ([]byte, error) {
+func pull(opts *options) (tars [][]byte, err error) {
 	tag := opts.tag
-	var err error
 	if len(tag) == 0 {
 		var keys []string
 		keys = append(keys, opts.keys...)
@@ -63,13 +64,9 @@ func pull(opts *options) ([]byte, error) {
 		return nil, err
 	}
 	cf, _ := img.ConfigFile()
-	metaIndex := -1
-	for i, history := range cf.History {
-		if history.CreatedBy == utils.CreatedByCracMeta {
-			metaIndex = i
-			break
-		}
-	}
+	metaIndex := slices.IndexFunc(cf.History, func(h v1.History) bool {
+		return h.CreatedBy == utils.CreatedByCracMeta
+	})
 	if metaIndex < 0 {
 		return nil, fmt.Errorf("invalid, \"%s\" not found", utils.CreatedByCracMeta)
 	}
@@ -84,19 +81,34 @@ func pull(opts *options) ([]byte, error) {
 		return nil, fmt.Errorf("invalid, version does't meet the constraint, (%s)", utils.CracVersionConstraint.String())
 	}
 
-	cacheIndex := metaIndex + 1
-	cacheLayer := layers[cacheIndex]
-	cacheReader, _ := cacheLayer.Uncompressed()
+	for idx, h := range cf.History {
+		if h.CreatedBy != utils.CreatedByCracCopy {
+			continue
+		}
+		cacheLayer := layers[idx]
+		cacheReader, _ := cacheLayer.Uncompressed()
 
-	if opts.outputStdout {
-		_, err := io.Copy(os.Stdout, cacheReader)
-		return nil, err
+		if opts.outputStdout {
+			if _, err := io.Copy(os.Stdout, cacheReader); err != nil {
+				return nil, err
+			}
+		}
+
+		if opts.outputBytes {
+			b, err := io.ReadAll(cacheReader)
+			if err != nil {
+				return nil, err
+			}
+			tars = append(tars, b)
+		}
+
+		if err := tarhelper.Untar(cacheReader, opts.workdir); err != nil {
+			return nil, err
+		}
 	}
 
 	if opts.outputBytes {
-		return io.ReadAll(cacheReader)
+		return tars, nil
 	}
-
-	err = tarhelper.Untar(cacheReader, opts.workdir)
-	return nil, err
+	return nil, nil
 }

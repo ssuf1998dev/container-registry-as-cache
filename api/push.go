@@ -32,36 +32,51 @@ func Push(opts ...Option) error {
 	return err
 }
 
-func push(opts *options) ([]byte, error) {
+func push(opts *options) (image []byte, err error) {
 	base := empty.Image
 
-	meta, _ := yaml.Marshal(utils.CracMeta{
-		Version: utils.CracVersion.String(),
-	})
-	metaLayer, _ := crane.Layer(map[string][]byte{fmt.Sprintf("/%s/meta.yaml", utils.Crac): meta})
-	img, _ := mutate.AppendLayers(base, metaLayer)
-
-	files := make(map[string][]byte, len(opts.files))
+	if len(opts.files) == 0 {
+		return nil, fmt.Errorf("empty image is not allowed")
+	}
+	limit := max(1, opts.limit)
+	files := map[string][]byte{}
+	bsize := 0
+	cacheLayers := []v1.Layer{}
 	for fn, f := range opts.files {
 		b, err := os.ReadFile(filepath.Join(opts.workdir, f))
 		if err != nil {
 			return nil, err
 		}
 		files[fn] = b
+		bsize += len(b)
+		if bsize > limit {
+			l, _ := crane.Layer(files)
+			cacheLayers = append(cacheLayers, l)
+			files = map[string][]byte{}
+			bsize = 0
+		}
 	}
-	if len(files) == 0 {
-		return nil, fmt.Errorf("empty image is not allowed")
+	if len(files) != 0 {
+		l, _ := crane.Layer(files)
+		cacheLayers = append(cacheLayers, l)
 	}
-	cacheLayer, _ := crane.Layer(files)
-	img, _ = mutate.AppendLayers(img, cacheLayer)
+	img, _ := mutate.AppendLayers(base, cacheLayers...)
+
+	meta, _ := yaml.Marshal(utils.CracMeta{
+		Version: utils.CracVersion.String(),
+	})
+	metaLayer, _ := crane.Layer(map[string][]byte{fmt.Sprintf("/%s/meta.yaml", utils.Crac): meta})
+	img, _ = mutate.AppendLayers(img, metaLayer)
 
 	cf, _ := img.ConfigFile()
 	cf = cf.DeepCopy()
 	cf.Created = v1.Time{Time: time.Now()}
-	cf.History = []v1.History{
-		{Created: cf.Created, CreatedBy: utils.CreatedByCracMeta},
-		{Created: cf.Created, CreatedBy: utils.CreatedByCracCopy},
+	histories := []v1.History{}
+	for range cacheLayers {
+		histories = append(histories, v1.History{Created: cf.Created, CreatedBy: utils.CreatedByCracCopy})
 	}
+	histories = append(histories, v1.History{Created: cf.Created, CreatedBy: utils.CreatedByCracMeta})
+	cf.History = histories
 	img, _ = mutate.ConfigFile(img, cf)
 
 	var keys []string
