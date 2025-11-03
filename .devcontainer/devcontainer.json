@@ -8,7 +8,8 @@
   },
   "runArgs": [
     "--env-file",
-    ".devcontainer/.env"
+    ".devcontainer/.env",
+    "--add-host=host.docker.internal:host-gateway"
   ],
   "mounts": [
     "source=${localWorkspaceFolderBasename}-go,target=/root/go/1.25.3,type=volume"
