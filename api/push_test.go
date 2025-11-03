@@ -3,10 +3,9 @@ package api
 import (
 	"archive/tar"
 	"bytes"
-	"crypto/tls"
 	"fmt"
 	"io"
-	"net/http"
+	"path/filepath"
 	"testing"
 
 	"github.com/goccy/go-yaml"
@@ -21,8 +20,8 @@ import (
 
 func TestPush_Local(t *testing.T) {
 	data, err := push(&options{
-		depFiles:    []string{"../testdata/foo"},
-		files:       []string{"../testdata/foo"},
+		depFiles:    map[string]string{"../testdata/foo": "../testdata/foo"},
+		files:       map[string]string{"../testdata/foo": "../testdata/foo"},
 		outputBytes: true,
 	})
 	require.NoError(t, err)
@@ -34,7 +33,7 @@ func TestPush_Local(t *testing.T) {
 
 	ref, err := name.ParseReference(mft[0].RepoTags[0])
 	require.NoError(t, err)
-	assert.Equal(t, "716639f2", ref.Identifier())
+	assert.Equal(t, "5cffc09f", ref.Identifier())
 
 	img, err := tarball.Image(func() (io.ReadCloser, error) {
 		return io.NopCloser(bytes.NewReader(data)), nil
@@ -57,26 +56,39 @@ func TestPush_Local(t *testing.T) {
 	assert.Equal(t, utils.CracVersion.String(), meta.Version)
 }
 
+func TestPush_Local_Pnpm(t *testing.T) {
+	basepath := "../testdata/pnpm"
+
+	depFiles, err := utils.ScanFiles([]string{filepath.Join(basepath, "pnpm-lock.yaml")})
+	require.NoError(t, err)
+	files, err := utils.ScanFiles([]string{filepath.Join(basepath, ".pnpm/store/**")})
+	require.NoError(t, err)
+
+	_, err = push(&options{
+		depFiles:    depFiles,
+		files:       files,
+		outputBytes: true,
+	})
+	require.NoError(t, err)
+}
+
 func TestPush_Remote(t *testing.T) {
 	_, err := push(&options{
 		context:  t.Context(),
-		repo:     fmt.Sprintf("localhost:5000/%s", utils.Crac),
+		repo:     fmt.Sprintf("host.docker.internal:5000/%s", utils.Crac),
 		username: "testuser",
 		password: "testpassword",
 		insecure: true,
-		depFiles: []string{"../testdata/foo"},
-		files:    []string{"../testdata/foo"},
+		depFiles: map[string]string{"../testdata/foo": "../testdata/foo"},
+		files:    map[string]string{"../testdata/foo": "../testdata/foo"},
 	})
 	require.NoError(t, err)
 
-	transport := remote.DefaultTransport.(*http.Transport).Clone()
-	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	repo, _ := name.NewRepository(fmt.Sprintf("localhost:5000/%s", utils.Crac))
+	repo, _ := name.NewRepository(fmt.Sprintf("host.docker.internal:5000/%s", utils.Crac), name.Insecure)
 	tags, err := remote.List(
 		repo,
 		remote.WithAuth(&authn.Basic{Username: "testuser", Password: "testpassword"}),
-		remote.WithTransport(transport),
 	)
 	require.NoError(t, err)
-	assert.Equal(t, "716639f2", tags[0])
+	assert.Equal(t, "5cffc09f", tags[0])
 }

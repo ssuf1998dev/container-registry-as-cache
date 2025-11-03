@@ -2,10 +2,8 @@ package api
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 
 	"github.com/Masterminds/semver/v3"
@@ -38,7 +36,7 @@ func pull(opts *options) ([]byte, error) {
 		if len(opts.platform) > 0 {
 			keys = append(keys, opts.platform)
 		}
-		tag, err = utils.ComputeTag(opts.depFiles, keys)
+		tag, err = utils.ComputeTag(opts.depFiles, keys, opts.workdir)
 		if err != nil {
 			return nil, err
 		}
@@ -47,20 +45,18 @@ func pull(opts *options) ([]byte, error) {
 	if len(repo) == 0 {
 		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, utils.Crac)
 	}
-	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag))
+	refOpts := []name.Option{}
+	if opts.insecure {
+		refOpts = append(refOpts, name.Insecure)
+	}
+	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag), refOpts...)
 	if err != nil {
 		return nil, err
 	}
 
-	transport := remote.DefaultTransport.(*http.Transport)
-	if opts.insecure {
-		transport = transport.Clone()
-		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	}
 	img, err := remote.Image(
 		ref,
 		remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}),
-		remote.WithTransport(transport),
 		remote.WithContext(opts.context),
 	)
 	if err != nil {

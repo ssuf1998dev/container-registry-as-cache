@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"maps"
 	"os"
 
 	"github.com/google/go-containerregistry/pkg/name"
@@ -19,8 +20,8 @@ type options struct {
 	insecure bool
 
 	keys     []string
-	depFiles []string
-	files    []string
+	depFiles map[string]string
+	files    map[string]string
 	platform string
 
 	tag     string
@@ -113,13 +114,13 @@ func WithKeys(keys []string) Option {
 	}
 }
 
-func WithDepFiles(depFiles []string) Option {
+func WithDepFiles(depFiles map[string]string) Option {
 	return func(o *options) {
 		o.depFiles = depFiles
 	}
 }
 
-func WithFiles(files []string) Option {
+func WithFiles(files map[string]string) Option {
 	return func(o *options) {
 		o.files = files
 	}
@@ -167,12 +168,14 @@ func WithProfile(profile string, file bool) Option {
 		if len(text) == 0 {
 			return
 		}
-
-		if p, err := cracprofile.Render(text); err == nil {
-			o.keys = append(o.keys, p.Keys...)
-			o.depFiles = append(o.depFiles, p.DepFiles...)
-			o.files = append(o.keys, p.Files...)
+		p, err := cracprofile.Render(text)
+		if err != nil {
+			return
 		}
+
+		o.keys = append(o.keys, p.Keys...)
+		maps.Copy(o.depFiles, p.DepFiles.Value)
+		maps.Copy(o.files, p.Files.Value)
 	}
 }
 

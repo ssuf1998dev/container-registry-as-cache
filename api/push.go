@@ -3,10 +3,9 @@ package api
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"fmt"
-	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/goccy/go-yaml"
@@ -43,12 +42,12 @@ func push(opts *options) ([]byte, error) {
 	img, _ := mutate.AppendLayers(base, metaLayer)
 
 	files := make(map[string][]byte, len(opts.files))
-	for _, f := range opts.files {
-		b, err := os.ReadFile(f)
+	for fn, f := range opts.files {
+		b, err := os.ReadFile(filepath.Join(opts.workdir, f))
 		if err != nil {
 			return nil, err
 		}
-		files[f] = b
+		files[fn] = b
 	}
 	if len(files) == 0 {
 		return nil, fmt.Errorf("empty image is not allowed")
@@ -70,7 +69,7 @@ func push(opts *options) ([]byte, error) {
 	if len(opts.platform) > 0 {
 		keys = append(keys, opts.platform)
 	}
-	tag, err := utils.ComputeTag(opts.depFiles, keys)
+	tag, err := utils.ComputeTag(opts.depFiles, keys, opts.workdir)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +77,11 @@ func push(opts *options) ([]byte, error) {
 	if len(repo) == 0 {
 		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, utils.Crac)
 	}
-	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag))
+	nameOpts := []name.Option{}
+	if opts.insecure {
+		nameOpts = append(nameOpts, name.Insecure)
+	}
+	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag), nameOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -105,15 +108,9 @@ func push(opts *options) ([]byte, error) {
 		return nil, err
 	}
 
-	transport := remote.DefaultTransport.(*http.Transport)
-	if opts.insecure {
-		transport = transport.Clone()
-		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	}
 	err = remote.Write(
 		ref, img,
 		remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}),
-		remote.WithTransport(transport),
 		remote.WithContext(opts.context),
 	)
 	return nil, err

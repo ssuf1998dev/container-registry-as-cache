@@ -14,8 +14,10 @@ func TestScanFiles_Pnpm(t *testing.T) {
 	cmd := exec.Command("pnpm", "install")
 	cmd.Dir = basepath
 	output, err := cmd.Output()
+	if err != nil {
+		t.Skipf("pnpm is not ready, skip, %s", err)
+	}
 	t.Logf("%s\n", output)
-	require.NoError(t, err)
 
 	files, err := ScanFiles([]string{filepath.Join(basepath, ".pnpm/store/**")})
 	require.NoError(t, err)

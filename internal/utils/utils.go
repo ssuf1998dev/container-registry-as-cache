@@ -17,22 +17,24 @@ type CracMeta struct {
 	Version string `yaml:"version,omitempty"`
 }
 
-func ComputeTag(files []string, keys []string) (string, error) {
+func ComputeTag(files map[string]string, keys []string, cwd string) (string, error) {
 	tag := name.DefaultTag
 	hashes := []string{}
 
 	for _, f := range files {
-		f = strings.TrimSpace(f)
-		b, err := os.ReadFile(f)
+		b, err := os.ReadFile(filepath.Join(cwd, f))
 		if err != nil {
 			return "", err
 		}
-		f, _ = filepath.Abs(f)
+		// use rel path for better caching
 		b = append(fmt.Appendf(nil, "%s\n", f), b...)
 		hashes = append(hashes, fmt.Sprintf("%x", sha256.Sum256(b)))
 	}
 
-	hashes = append(hashes, keys...)
+	for _, k := range keys {
+		hashes = append(hashes, fmt.Sprintf("%x", sha256.Sum256([]byte(k))))
+	}
+
 	sort.Strings(hashes)
 
 	if len(hashes) != 0 {
@@ -43,8 +45,8 @@ func ComputeTag(files []string, keys []string) (string, error) {
 	return tag, nil
 }
 
-func ScanFiles(patterns []string) ([]string, error) {
-	list := []string{}
+func ScanFiles(patterns []string) (map[string]string, error) {
+	m := map[string]string{}
 	for _, item := range patterns {
 		basepath, pattern := doublestar.SplitPattern(item)
 		fsys := os.DirFS(basepath)
@@ -52,7 +54,13 @@ func ScanFiles(patterns []string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		list = append(list, matches...)
+		for _, match := range matches {
+			abs, err := filepath.Abs(filepath.Join(basepath, match))
+			if err != nil {
+				return nil, err
+			}
+			m[match] = abs
+		}
 	}
-	return list, nil
+	return m, nil
 }

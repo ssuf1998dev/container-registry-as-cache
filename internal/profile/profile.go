@@ -11,14 +11,38 @@ import (
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/goccy/go-yaml"
+	"github.com/goccy/go-yaml/ast"
+	"github.com/ssuf1998dev/container-registry-as-cache/internal/utils"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 )
 
+type ProfileFiles struct {
+	Value map[string]string
+}
+
+func (f *ProfileFiles) UnmarshalYAML(raw ast.Node) error {
+	switch node := raw.(type) {
+	case *ast.SequenceNode:
+		patterns := []string{}
+		iter := node.ArrayRange()
+		for iter.Next() {
+			if v, ok := iter.Value().(*ast.StringNode); ok {
+				patterns = append(patterns, v.Value)
+			}
+		}
+
+		if m, err := utils.ScanFiles(patterns); err == nil {
+			f.Value = m
+		}
+	}
+	return nil
+}
+
 type Profile struct {
-	Keys     []string `yaml:"keys"`
-	DepFiles []string `yaml:"deps"`
-	Files    []string `yaml:"files"`
+	Keys     []string     `yaml:"keys"`
+	DepFiles ProfileFiles `yaml:"deps"`
+	Files    ProfileFiles `yaml:"files"`
 }
 
 //go:embed pnpm.yaml

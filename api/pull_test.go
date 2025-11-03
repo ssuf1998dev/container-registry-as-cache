@@ -12,26 +12,26 @@ import (
 )
 
 func TestPull(t *testing.T) {
-	deps := []string{"../testdata/foo"}
+	deps := map[string]string{"../testdata/foo": "../testdata/foo"}
 
 	_, err := push(&options{
 		context:  t.Context(),
-		repo:     fmt.Sprintf("localhost:5000/%s", utils.Crac),
+		repo:     fmt.Sprintf("host.docker.internal:5000/%s", utils.Crac),
 		username: "testuser",
 		password: "testpassword",
 		insecure: true,
 		depFiles: deps,
-		files:    []string{"../testdata/foo"},
+		files:    map[string]string{"../testdata/foo": "../testdata/foo"},
 	})
 	require.NoError(t, err)
 
 	cache, err := pull(&options{
-		context:  t.Context(),
-		repo:     fmt.Sprintf("localhost:5000/%s", utils.Crac),
-		username: "testuser",
-		password: "testpassword",
-		insecure: true,
-		depFiles: deps,
+		context:     t.Context(),
+		repo:        fmt.Sprintf("host.docker.internal:5000/%s", utils.Crac),
+		username:    "testuser",
+		password:    "testpassword",
+		insecure:    true,
+		depFiles:    deps,
 		outputBytes: true,
 	})
 	require.NoError(t, err)
