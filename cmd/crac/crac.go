@@ -77,11 +77,11 @@ func main() {
 					if len(repo) == 0 {
 						return fmt.Errorf("argument repository is required")
 					}
-					deps, err := utils.GlobScanFiles(cmd.StringSlice("dep"))
+					deps, err := utils.ScanFiles(cmd.StringSlice("dep"))
 					if err != nil {
 						return err
 					}
-					files, err := utils.GlobScanFiles(cmd.StringSlice("file"))
+					files, err := utils.ScanFiles(cmd.StringSlice("file"))
 					if err != nil {
 						return err
 					}
@@ -172,7 +172,7 @@ func main() {
 					if len(repo) == 0 {
 						return fmt.Errorf("argument repository is required")
 					}
-					deps, err := utils.GlobScanFiles(cmd.StringSlice("deps"))
+					deps, err := utils.ScanFiles(cmd.StringSlice("deps"))
 					if err != nil {
 						return err
 					}

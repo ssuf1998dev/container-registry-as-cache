@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPushLocal(t *testing.T) {
+func TestPush_Local(t *testing.T) {
 	data, err := push(&options{
 		depFiles:    []string{"../testdata/foo"},
 		files:       []string{"../testdata/foo"},
@@ -57,7 +57,7 @@ func TestPushLocal(t *testing.T) {
 	assert.Equal(t, utils.CracVersion.String(), meta.Version)
 }
 
-func TestPushRemote(t *testing.T) {
+func TestPush_Remote(t *testing.T) {
 	_, err := push(&options{
 		context:  t.Context(),
 		repo:     fmt.Sprintf("localhost:5000/%s", utils.Crac),

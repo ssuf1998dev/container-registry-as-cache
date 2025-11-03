@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/google/go-containerregistry/pkg/name"
 )
 
@@ -42,10 +43,12 @@ func ComputeTag(files []string, keys []string) (string, error) {
 	return tag, nil
 }
 
-func GlobScanFiles(patterns []string) ([]string, error) {
+func ScanFiles(patterns []string) ([]string, error) {
 	list := []string{}
 	for _, item := range patterns {
-		matches, err := filepath.Glob(item)
+		basepath, pattern := doublestar.SplitPattern(item)
+		fsys := os.DirFS(basepath)
+		matches, err := doublestar.Glob(fsys, pattern, doublestar.WithFilesOnly())
 		if err != nil {
 			return nil, err
 		}
