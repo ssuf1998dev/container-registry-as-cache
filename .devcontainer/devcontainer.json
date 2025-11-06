@@ -12,7 +12,7 @@
     "--add-host=host.docker.internal:host-gateway"
   ],
   "mounts": [
-    "source=${localWorkspaceFolderBasename}-go,target=/root/go/1.25.3,type=volume"
+    "source=${localWorkspaceFolderBasename}-go,target=/root/go,type=volume"
   ],
   "postAttachCommand": {
     "git": "git config --global help.format info && git config --global user.name $GIT_USER_NAME && git config --global user.email $GIT_USER_EMAIL",
