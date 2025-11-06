@@ -11,7 +11,6 @@ import (
 )
 
 func TestRender(t *testing.T) {
-
 	basepath := "../../testdata/pnpm"
 	os.Chdir(basepath)
 	cwd, _ := os.Getwd()

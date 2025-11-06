@@ -79,9 +79,16 @@ func TestPush_Local_Pnpm(t *testing.T) {
 }
 
 func TestPush_Remote(t *testing.T) {
+	os.Unsetenv("HTTP_PROXY")
+	os.Unsetenv("http_proxy")
+	reg := os.Getenv("CRAC_TEST_REGISTRY")
+	if reg == "" {
+		reg = "127.0.0.1:5000"
+	}
+
 	_, err := push(&options{
 		context:  t.Context(),
-		repo:     fmt.Sprintf("host.docker.internal:5000/%s", utils.Crac),
+		repo:     fmt.Sprintf("%s/%s", reg, utils.Crac),
 		username: "testuser",
 		password: "testpassword",
 		insecure: true,
@@ -90,7 +97,7 @@ func TestPush_Remote(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	repo, _ := name.NewRepository(fmt.Sprintf("host.docker.internal:5000/%s", utils.Crac), name.Insecure)
+	repo, _ := name.NewRepository(fmt.Sprintf("%s/%s", reg, utils.Crac), name.Insecure)
 	tags, err := remote.List(
 		repo,
 		remote.WithAuth(&authn.Basic{Username: "testuser", Password: "testpassword"}),

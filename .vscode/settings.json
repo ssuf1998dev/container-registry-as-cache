@@ -1,3 +1,6 @@
 {
   "remote.autoForwardPorts": false,
+  "go.testEnvVars": {
+    "CRAC_TEST_REGISTRY": "host.docker.internal:5000"
+  }
 }

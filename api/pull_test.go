@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/ssuf1998dev/container-registry-as-cache/internal/tarhelper"
@@ -12,11 +13,18 @@ import (
 )
 
 func TestPull(t *testing.T) {
+	os.Unsetenv("HTTP_PROXY")
+	os.Unsetenv("http_proxy")
+	reg := os.Getenv("CRAC_TEST_REGISTRY")
+	if reg == "" {
+		reg = "127.0.0.1:5000"
+	}
+
 	deps := map[string]string{"../testdata/foo": "../testdata/foo"}
 
 	_, err := push(&options{
 		context:  t.Context(),
-		repo:     fmt.Sprintf("host.docker.internal:5000/%s", utils.Crac),
+		repo:     fmt.Sprintf("%s/%s", reg, utils.Crac),
 		username: "testuser",
 		password: "testpassword",
 		insecure: true,
@@ -27,7 +35,7 @@ func TestPull(t *testing.T) {
 
 	cache, err := pull(&options{
 		context:     t.Context(),
-		repo:        fmt.Sprintf("host.docker.internal:5000/%s", utils.Crac),
+		repo:        fmt.Sprintf("%s/%s", reg, utils.Crac),
 		username:    "testuser",
 		password:    "testpassword",
 		insecure:    true,
