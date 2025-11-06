@@ -88,7 +88,7 @@ func pull(opts *options) (tars []byte, err error) {
 		return nil, fmt.Errorf("invalid, \"%s\" not found", utils.CreatedByCracCopy)
 	}
 
-	cacheLayer := layers[metaIndex]
+	cacheLayer := layers[cacheIndex]
 	cacheReader, _ := cacheLayer.Uncompressed()
 	if opts.outputStdout {
 		_, err := io.Copy(os.Stdout, cacheReader)
