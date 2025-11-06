@@ -25,7 +25,7 @@ func TestPull(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	caches, err := pull(&options{
+	cache, err := pull(&options{
 		context:     t.Context(),
 		repo:        fmt.Sprintf("host.docker.internal:5000/%s", utils.Crac),
 		username:    "testuser",
@@ -35,7 +35,7 @@ func TestPull(t *testing.T) {
 		outputBytes: true,
 	})
 	require.NoError(t, err)
-	b, err := tarhelper.ExtraFileTar(bytes.NewReader(caches[0]), "../testdata/foo")
+	b, err := tarhelper.ExtraFileTar(bytes.NewReader(cache), "../testdata/foo")
 	require.NoError(t, err)
 	assert.Equal(t, string(b), "bar")
 }

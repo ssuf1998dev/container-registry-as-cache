@@ -29,7 +29,7 @@ func Pull(opts ...Option) error {
 	return err
 }
 
-func pull(opts *options) (tars [][]byte, err error) {
+func pull(opts *options) (tars []byte, err error) {
 	tag := opts.tag
 	if len(tag) == 0 {
 		var keys []string
@@ -81,34 +81,24 @@ func pull(opts *options) (tars [][]byte, err error) {
 		return nil, fmt.Errorf("invalid, version does't meet the constraint, (%s)", utils.CracVersionConstraint.String())
 	}
 
-	for idx, h := range cf.History {
-		if h.CreatedBy != utils.CreatedByCracCopy {
-			continue
-		}
-		cacheLayer := layers[idx]
-		cacheReader, _ := cacheLayer.Uncompressed()
+	cacheIndex := slices.IndexFunc(cf.History, func(h v1.History) bool {
+		return h.CreatedBy == utils.CreatedByCracCopy
+	})
+	if cacheIndex < 0 {
+		return nil, fmt.Errorf("invalid, \"%s\" not found", utils.CreatedByCracCopy)
+	}
 
-		if opts.outputStdout {
-			if _, err := io.Copy(os.Stdout, cacheReader); err != nil {
-				return nil, err
-			}
-		}
-
-		if opts.outputBytes {
-			b, err := io.ReadAll(cacheReader)
-			if err != nil {
-				return nil, err
-			}
-			tars = append(tars, b)
-		}
-
-		if err := tarhelper.Untar(cacheReader, opts.workdir); err != nil {
-			return nil, err
-		}
+	cacheLayer := layers[metaIndex]
+	cacheReader, _ := cacheLayer.Uncompressed()
+	if opts.outputStdout {
+		_, err := io.Copy(os.Stdout, cacheReader)
+		return nil, err
 	}
 
 	if opts.outputBytes {
-		return tars, nil
+		return io.ReadAll(cacheReader)
 	}
-	return nil, nil
+
+	err = tarhelper.Untar(cacheReader, opts.workdir)
+	return nil, err
 }
