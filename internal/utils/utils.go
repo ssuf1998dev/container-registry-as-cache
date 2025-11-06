@@ -48,7 +48,7 @@ func ComputeTag(files map[string]string, keys []string, cwd string) (string, err
 func ScanFiles(patterns []string) (map[string]string, error) {
 	m := map[string]string{}
 	for _, item := range patterns {
-		basepath, pattern := doublestar.SplitPattern(item)
+		basepath, pattern := doublestar.SplitPattern(filepath.ToSlash(item))
 		fsys := os.DirFS(basepath)
 		matches, err := doublestar.Glob(fsys, pattern, doublestar.WithFilesOnly())
 		if err != nil {
