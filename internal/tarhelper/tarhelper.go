@@ -29,7 +29,7 @@ func WalkTar(r io.Reader, callback func(header *tar.Header, fi os.FileInfo, data
 	return nil
 }
 
-func ExtraFileTar(r io.Reader, path string) ([]byte, error) {
+func UntarFile(r io.Reader, path string) ([]byte, error) {
 	var b []byte
 	err := WalkTar(r, func(header *tar.Header, fi os.FileInfo, data []byte) (bool, error) {
 		if header.Name == path {

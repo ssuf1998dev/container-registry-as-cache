@@ -35,7 +35,7 @@ func TestPull(t *testing.T) {
 		outputBytes: true,
 	})
 	require.NoError(t, err)
-	b, err := tarhelper.ExtraFileTar(bytes.NewReader(cache), "../testdata/foo")
+	b, err := tarhelper.UntarFile(bytes.NewReader(cache), "../testdata/foo")
 	require.NoError(t, err)
 	assert.Equal(t, string(b), "bar")
 }

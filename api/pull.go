@@ -74,7 +74,7 @@ func pull(opts *options) (tars []byte, err error) {
 	layers, _ := img.Layers()
 	metaLayer := layers[metaIndex]
 	metaReader, _ := metaLayer.Uncompressed()
-	metaData, _ := tarhelper.ExtraFileTar(metaReader, fmt.Sprintf("/%s/meta.yaml", utils.Crac))
+	metaData, _ := tarhelper.UntarFile(metaReader, fmt.Sprintf("/%s/meta.yaml", utils.Crac))
 	var meta utils.CracMeta
 	_ = yaml.Unmarshal(metaData, &meta)
 	if len(meta.Version) == 0 || !utils.CracVersionConstraint.Check(semver.MustParse(meta.Version)) {
