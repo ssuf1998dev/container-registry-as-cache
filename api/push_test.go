@@ -83,7 +83,7 @@ func TestPush_Remote(t *testing.T) {
 	os.Unsetenv("http_proxy")
 	reg := os.Getenv("CRAC_TEST_REGISTRY")
 	if reg == "" {
-		reg = "127.0.0.1:5000"
+		t.Skipf("registry is empty, skip")
 	}
 
 	_, err := push(&options{
