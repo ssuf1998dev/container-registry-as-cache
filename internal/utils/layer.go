@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
@@ -17,7 +18,7 @@ type TarLayer struct {
 	File string
 }
 
-func NewTarLayer(files map[string]string) (*TarLayer, error) {
+func NewTarLayer(files map[string]string, workdir string) (*TarLayer, error) {
 	id, err := gonanoid.New()
 	if err != nil {
 		return nil, err
@@ -34,13 +35,22 @@ func NewTarLayer(files map[string]string) (*TarLayer, error) {
 		fn = append(fn, f)
 	}
 	sort.Strings(fn)
+	if len(workdir) != 0 {
+		workdir, _ = filepath.Abs(workdir)
+	}
 	for _, f := range fn {
 		b, err := os.ReadFile(files[f])
 		if err != nil {
 			return nil, err
 		}
+		name := f
+		if len(workdir) != 0 {
+			rel, _ := filepath.Rel(workdir, files[f])
+			dir := filepath.Clean(strings.ReplaceAll(rel, f, ""))
+			name = filepath.Join(dir, f)
+		}
 		if err := tw.WriteHeader(&tar.Header{
-			Name: f,
+			Name: name,
 			Size: int64(len(b)),
 		}); err != nil {
 			return nil, err

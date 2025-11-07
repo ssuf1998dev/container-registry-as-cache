@@ -38,7 +38,7 @@ func push(opts *options) (image []byte, err error) {
 		return nil, fmt.Errorf("empty image is not allowed")
 	}
 
-	cacheLayer, err := utils.NewTarLayer(opts.files)
+	cacheLayer, err := utils.NewTarLayer(opts.files, opts.workdir)
 	defer func() {
 		os.Remove(cacheLayer.File)
 	}()

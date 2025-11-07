@@ -74,6 +74,7 @@ func TestPush_Local_Pnpm(t *testing.T) {
 		depFiles:    depFiles,
 		files:       files,
 		outputBytes: true,
+		workdir:     basepath,
 	})
 	require.NoError(t, err)
 }
