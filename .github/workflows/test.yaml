@@ -1,13 +1,13 @@
 name: Test
 
 on:
-  workflow_dispatch:
+  # workflow_dispatch:
   pull_request:
   push:
     tags:
       - v*
-    # branches:
-    #   - main
+    branches:
+      - main
 
 jobs:
   test:
@@ -17,6 +17,11 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{matrix.platform}}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
@@ -37,11 +42,6 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-compose-action@v1
         if: ${{matrix.platform == 'ubuntu-latest'}}
-
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Download Go modules
         run: go mod download
