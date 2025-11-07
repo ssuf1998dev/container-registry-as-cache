@@ -62,6 +62,13 @@ func Untar(r io.Reader, dst string) error {
 			}
 
 		case tar.TypeReg:
+			dir := filepath.Dir(target)
+			if _, err := os.Stat(dir); err != nil {
+				if err := os.MkdirAll(dir, 0755); err != nil {
+					return false, err
+				}
+			}
+
 			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
 			if err != nil {
 				return false, err
