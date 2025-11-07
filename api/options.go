@@ -4,6 +4,7 @@ import (
 	"context"
 	"maps"
 	"os"
+	"path/filepath"
 
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/ssuf1998dev/container-registry-as-cache/internal/configfile"
@@ -140,7 +141,9 @@ func WithTag(tag string) Option {
 
 func WithWorkdir(workdir string) Option {
 	return func(o *options) {
-		o.workdir = workdir
+		if len(workdir) != 0 {
+			o.workdir, _ = filepath.Abs(workdir)
+		}
 	}
 }
 
@@ -168,7 +171,7 @@ func WithProfile(profile string, file bool) Option {
 		if len(text) == 0 {
 			return
 		}
-		p, err := cracprofile.Render(text)
+		p, err := cracprofile.Render(text, o.workdir)
 		if err != nil {
 			return
 		}

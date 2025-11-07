@@ -23,7 +23,7 @@ func TestRender(t *testing.T) {
 	}
 	t.Logf("%s\n", output)
 
-	p, err := Render(Pnpm)
+	p, err := Render(Pnpm, "")
 	require.NoError(t, err)
 	pnpmStoreOutput, err := exec.Command("pnpm", "store", "path").Output()
 	require.NoError(t, err)

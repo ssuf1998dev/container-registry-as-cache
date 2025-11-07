@@ -42,6 +42,10 @@ func main() {
 						Usage: "cache file(s) to make image, glob supported",
 					},
 					&cli.StringFlag{
+						Name: "workdir", Aliases: []string{"w"}, Category: "BASIC",
+						Usage: "working directory where to uncompress file(s) to",
+					},
+					&cli.StringFlag{
 						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "BASIC",
 						Usage: "platform of cache, it will be a part of keys changing tag",
 					},
@@ -104,6 +108,7 @@ func main() {
 						api.WithKeys(cmd.StringSlice("key")),
 						api.WithDepFiles(deps),
 						api.WithFiles(files),
+						api.WithWorkdir(cmd.String("workdir")),
 						api.WithPlatform(cmd.String("platform")),
 						api.WithProfile(profile, len(profileFile) != 0),
 						api.WithOutputStdout(output == "stdout"),

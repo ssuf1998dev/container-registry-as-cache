@@ -48,28 +48,31 @@ type Profile struct {
 //go:embed pnpm.yaml
 var Pnpm string
 
-var funcs = template.FuncMap{
-	"sh": func(cmd string) (string, error) {
-		file, err := syntax.NewParser().Parse(strings.NewReader(cmd), "")
-		if err != nil {
-			return "", err
-		}
-		var buf bytes.Buffer
-		runner, _ := interp.New(
-			interp.StdIO(nil, &buf, &buf),
-		)
-		err = runner.Run(context.Background(), file)
-		if err != nil {
-			return "", err
-		}
-		return buf.String(), nil
-	},
-	"rel": filepath.Rel,
-	"cwd": os.Getwd,
+func funcs(workdir string) template.FuncMap {
+	return template.FuncMap{
+		"sh": func(cmd string) (string, error) {
+			file, err := syntax.NewParser().Parse(strings.NewReader(cmd), "")
+			if err != nil {
+				return "", err
+			}
+			var buf bytes.Buffer
+			runner, _ := interp.New(
+				interp.StdIO(nil, &buf, &buf),
+				interp.Dir(workdir),
+			)
+			err = runner.Run(context.Background(), file)
+			if err != nil {
+				return "", err
+			}
+			return buf.String(), nil
+		},
+		"rel": filepath.Rel,
+		"cwd": os.Getwd,
+	}
 }
 
-func Render(text string) (*Profile, error) {
-	tpl, err := template.New("").Funcs(funcs).Funcs(sprig.FuncMap()).Parse(text)
+func Render(text string, workdir string) (*Profile, error) {
+	tpl, err := template.New("").Funcs(funcs(workdir)).Funcs(sprig.FuncMap()).Parse(text)
 	if err != nil {
 		return nil, err
 	}
