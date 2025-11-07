@@ -2,8 +2,10 @@ package api
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"slices"
 
@@ -46,19 +48,26 @@ func pull(opts *options) (tars []byte, err error) {
 	if len(repo) == 0 {
 		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, utils.Crac)
 	}
-	refOpts := []name.Option{}
-	if opts.insecure {
-		refOpts = append(refOpts, name.Insecure)
+	nameOpts := []name.Option{}
+	if opts.forceHttp {
+		nameOpts = append(nameOpts, name.Insecure)
 	}
-	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag), refOpts...)
+	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag), nameOpts...)
 	if err != nil {
 		return nil, err
+	}
+
+	transport := remote.DefaultTransport.(*http.Transport)
+	if opts.insecure {
+		transport = transport.Clone()
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
 	img, err := remote.Image(
 		ref,
 		remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}),
 		remote.WithContext(opts.context),
+		remote.WithTransport(transport),
 	)
 	if err != nil {
 		return nil, err

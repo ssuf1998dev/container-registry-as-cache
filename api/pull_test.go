@@ -23,13 +23,14 @@ func TestPull(t *testing.T) {
 	deps := map[string]string{"../testdata/foo": "../testdata/foo"}
 
 	_, err := push(&options{
-		context:  t.Context(),
-		repo:     fmt.Sprintf("%s/%s", reg, utils.Crac),
-		username: "testuser",
-		password: "testpassword",
-		insecure: true,
-		depFiles: deps,
-		files:    map[string]string{"../testdata/foo": "../testdata/foo"},
+		context:   t.Context(),
+		repo:      fmt.Sprintf("%s/%s", reg, utils.Crac),
+		username:  "testuser",
+		password:  "testpassword",
+		forceHttp: true,
+		insecure:  true,
+		depFiles:  deps,
+		files:     map[string]string{"../testdata/foo": "../testdata/foo"},
 	})
 	require.NoError(t, err)
 
@@ -38,6 +39,7 @@ func TestPull(t *testing.T) {
 		repo:        fmt.Sprintf("%s/%s", reg, utils.Crac),
 		username:    "testuser",
 		password:    "testpassword",
+		forceHttp:   true,
 		insecure:    true,
 		depFiles:    deps,
 		outputBytes: true,

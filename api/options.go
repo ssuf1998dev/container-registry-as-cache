@@ -14,11 +14,12 @@ import (
 type Option func(*options)
 
 type options struct {
-	context  context.Context
-	repo     string
-	username string
-	password string
-	insecure bool
+	context   context.Context
+	repo      string
+	username  string
+	password  string
+	forceHttp bool
+	insecure  bool
 
 	keys     []string
 	depFiles map[string]string
@@ -100,6 +101,12 @@ func WithLoginPassword() Option {
 				return o.password
 			}
 		}()
+	}
+}
+
+func WithForceHttp(forceHttp bool) Option {
+	return func(o *options) {
+		o.forceHttp = forceHttp
 	}
 }
 

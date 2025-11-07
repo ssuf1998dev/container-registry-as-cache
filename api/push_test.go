@@ -88,13 +88,14 @@ func TestPush_Remote(t *testing.T) {
 	}
 
 	_, err := push(&options{
-		context:  t.Context(),
-		repo:     fmt.Sprintf("%s/%s", reg, utils.Crac),
-		username: "testuser",
-		password: "testpassword",
-		insecure: true,
-		depFiles: map[string]string{"../testdata/foo": "../testdata/foo"},
-		files:    map[string]string{"../testdata/foo": "../testdata/foo"},
+		context:   t.Context(),
+		repo:      fmt.Sprintf("%s/%s", reg, utils.Crac),
+		username:  "testuser",
+		password:  "testpassword",
+		forceHttp: true,
+		insecure:  true,
+		depFiles:  map[string]string{"../testdata/foo": "../testdata/foo"},
+		files:     map[string]string{"../testdata/foo": "../testdata/foo"},
 	})
 	require.NoError(t, err)
 

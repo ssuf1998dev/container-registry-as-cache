@@ -76,6 +76,10 @@ func main() {
 						Usage: "password for authenticating to a registry",
 					},
 					&cli.BoolFlag{
+						Name: "force-http", Category: "AUTH",
+						Usage: "use http for the remote registry",
+					},
+					&cli.BoolFlag{
 						Name: "insecure", Category: "AUTH",
 						Usage: "skip ssl verify for the remote registry",
 					},
@@ -113,6 +117,7 @@ func main() {
 						api.WithLoginUsername(),
 						api.WithPassword(cmd.String("password")),
 						api.WithLoginPassword(),
+						api.WithForceHttp(cmd.Bool("force-http")),
 						api.WithInsecure(cmd.Bool("insecure")),
 						api.WithKeys(cmd.StringSlice("key")),
 						api.WithDepFiles(deps),
@@ -181,6 +186,10 @@ func main() {
 						Usage: "password for authenticating to a registry",
 					},
 					&cli.BoolFlag{
+						Name: "force-http", Category: "AUTH",
+						Usage: "use http for the remote registry",
+					},
+					&cli.BoolFlag{
 						Name: "insecure", Category: "AUTH",
 						Usage: "skip ssl verify for the remote registry",
 					},
@@ -212,6 +221,7 @@ func main() {
 						api.WithLoginUsername(),
 						api.WithPassword(cmd.String("password")),
 						api.WithLoginPassword(),
+						api.WithForceHttp(cmd.Bool("force-http")),
 						api.WithInsecure(cmd.Bool("insecure")),
 						api.WithKeys(cmd.StringSlice("keys")),
 						api.WithDepFiles(deps),
