@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/goccy/go-yaml"
@@ -39,15 +38,13 @@ func push(opts *options) (image []byte, err error) {
 		return nil, fmt.Errorf("empty image is not allowed")
 	}
 
-	files := map[string][]byte{}
-	for fn, f := range opts.files {
-		b, err := os.ReadFile(filepath.Join(opts.workdir, f))
-		if err != nil {
-			return nil, err
-		}
-		files[fn] = b
+	cacheLayer, err := utils.NewTarLayer(opts.files)
+	defer func() {
+		os.Remove(cacheLayer.File)
+	}()
+	if err != nil {
+		return nil, err
 	}
-	cacheLayer, _ := crane.Layer(files)
 	img, _ := mutate.AppendLayers(base, cacheLayer)
 
 	meta, _ := yaml.Marshal(utils.CracMeta{

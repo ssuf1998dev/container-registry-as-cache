@@ -9,6 +9,7 @@ require (
 	github.com/goccy/go-yaml v1.18.0
 	github.com/google/go-containerregistry v0.20.6
 	github.com/gopasspw/gopass v1.15.18
+	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/stretchr/testify v1.11.1
 	github.com/urfave/cli/v3 v3.5.0
 	mvdan.cc/sh/v3 v3.12.0

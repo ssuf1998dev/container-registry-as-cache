@@ -49,6 +49,7 @@ func UntarFile(r io.Reader, path string) ([]byte, error) {
 
 func Untar(r io.Reader, dst string) error {
 	return WalkTar(r, func(header *tar.Header, fi os.FileInfo, data []byte) (bool, error) {
+		// force to make header.Name relative to dst
 		target := filepath.Join(dst, header.Name)
 
 		switch header.Typeflag {

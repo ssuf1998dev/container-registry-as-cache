@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,4 +23,29 @@ func TestScanFiles_Pnpm(t *testing.T) {
 	files, err := ScanFiles([]string{filepath.Join(basepath, ".pnpm/store/**")})
 	require.NoError(t, err)
 	require.Greater(t, len(files), 0)
+}
+
+func TestPathJoinRespectAbs(t *testing.T) {
+	for _, item := range []struct {
+		elem []string
+		path string
+	}{
+		{elem: []string{"a", "b"}, path: "a/b"},
+		{elem: []string{"/a", "b"}, path: "/a/b"},
+		{elem: []string{"a", "/b"}, path: "/b"},
+		{elem: []string{"/a", "/b"}, path: "/b"},
+
+		{elem: []string{"a", "./b"}, path: "a/b"},
+		{elem: []string{"/a", "./b"}, path: "/a/b"},
+		{elem: []string{"./a", "/b"}, path: "/b"},
+		{elem: []string{"/a", "/b"}, path: "/b"},
+
+		{elem: []string{"a", "b", "c"}, path: "a/b/c"},
+		{elem: []string{"a", "b", "/c"}, path: "/c"},
+		{elem: []string{"/a", "b", "/c"}, path: "/c"},
+
+		{elem: []string{"a", "./b/**"}, path: "a/b/**"},
+	} {
+		assert.Equal(t, item.path, PathJoinRespectAbs(item.elem...))
+	}
 }
