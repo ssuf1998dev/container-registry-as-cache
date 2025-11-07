@@ -17,12 +17,12 @@ type CracMeta struct {
 	Version string `yaml:"version,omitempty"`
 }
 
-func ComputeTag(files map[string]string, keys []string, cwd string) (string, error) {
+func ComputeTag(files map[string]string, keys []string, workdir string) (string, error) {
 	tag := name.DefaultTag
 	hashes := []string{}
 
 	for _, f := range files {
-		b, err := os.ReadFile(filepath.Join(cwd, f))
+		b, err := os.ReadFile(PathJoinRespectAbs(workdir, f))
 		if err != nil {
 			return "", err
 		}
@@ -63,4 +63,13 @@ func ScanFiles(patterns []string) (map[string]string, error) {
 		}
 	}
 	return m, nil
+}
+
+func PathJoinRespectAbs(elem ...string) string {
+	for _, item := range elem[1:] {
+		if filepath.IsAbs(item) {
+			return item
+		}
+	}
+	return filepath.Join(elem...)
 }
