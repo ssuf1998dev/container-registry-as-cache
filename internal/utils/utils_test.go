@@ -3,6 +3,7 @@ package utils
 import (
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,7 +26,11 @@ func TestScanFiles_Pnpm(t *testing.T) {
 	require.Greater(t, len(files), 0)
 }
 
-func TestPathJoinRespectAbs(t *testing.T) {
+func TestPathJoinRespectAbs_Unix(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip()
+	}
+
 	for _, item := range []struct {
 		elem []string
 		path string
