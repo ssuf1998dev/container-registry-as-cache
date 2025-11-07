@@ -74,7 +74,7 @@ func Untar(r io.Reader, dst string) error {
 				return false, err
 			}
 
-			if _, err := io.Copy(f, r); err != nil {
+			if _, err := f.Write(data); err != nil {
 				return false, err
 			}
 
