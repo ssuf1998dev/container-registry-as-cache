@@ -49,6 +49,10 @@ func main() {
 						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "BASIC",
 						Usage: "platform of cache, it will be a part of keys changing tag",
 					},
+					&cli.BoolFlag{
+						Name: "unknown-platform", Category: "BASIC",
+						Usage: "override platform of cache to unknown/unknown",
+					},
 					&cli.StringFlag{
 						Name: "output", Aliases: []string{"o"}, Category: "BASIC",
 						Usage: "output where, could be stdout or file",
@@ -97,6 +101,11 @@ func main() {
 
 					output := cmd.String("output")
 
+					platform := cmd.String("platform")
+					if cmd.Bool("unknown-platform") {
+						platform = "unknown/unknown"
+					}
+
 					return api.Push(
 						api.WithContext(context.Background()),
 						api.WithRepository(repo),
@@ -109,7 +118,7 @@ func main() {
 						api.WithDepFiles(deps),
 						api.WithFiles(files),
 						api.WithWorkdir(cmd.String("workdir")),
-						api.WithPlatform(cmd.String("platform")),
+						api.WithPlatform(platform),
 						api.WithProfile(profile, len(profileFile) != 0),
 						api.WithOutputStdout(output == "stdout"),
 						api.WithOutputFile(output),
@@ -144,6 +153,10 @@ func main() {
 					&cli.StringFlag{
 						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "BASIC",
 						Usage: "platform of cache, it will be a part of keys changing tag",
+					},
+					&cli.BoolFlag{
+						Name: "unknown-platform", Category: "BASIC",
+						Usage: "override platform of cache to unknown/unknown",
 					},
 					&cli.BoolFlag{
 						Name: "stdout", Category: "BASIC",
@@ -187,6 +200,11 @@ func main() {
 						profile = profileFile
 					}
 
+					platform := cmd.String("platform")
+					if cmd.Bool("unknown-platform") {
+						platform = "unknown/unknown"
+					}
+
 					return api.Pull(
 						api.WithContext(context.Background()),
 						api.WithRepository(repo),
@@ -199,7 +217,7 @@ func main() {
 						api.WithDepFiles(deps),
 						api.WithTag(cmd.String("tag")),
 						api.WithWorkdir(cmd.String("workdir")),
-						api.WithPlatform(cmd.String("platform")),
+						api.WithPlatform(platform),
 						api.WithProfile(profile, len(profileFile) != 0),
 						api.WithOutputStdout(cmd.Bool("stdout")),
 					)
