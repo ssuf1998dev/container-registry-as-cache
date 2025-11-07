@@ -45,7 +45,7 @@ func NewConfigFile(opts *NewOptions) *ConfigFile {
 
 func (cf *ConfigFile) ready() error {
 	if _, err := os.Stat(cf.dir); err != nil {
-		if err := os.MkdirAll(cf.dir, 0755); err != nil {
+		if err := os.MkdirAll(cf.dir, 0766); err != nil {
 			return err
 		}
 	}

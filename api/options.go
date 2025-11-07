@@ -29,7 +29,7 @@ type options struct {
 	tag     string
 	workdir string
 
-	configfile string
+	configfile string // internal
 
 	outputStdout bool
 	outputBytes  bool
