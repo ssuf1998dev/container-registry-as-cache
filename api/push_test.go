@@ -37,7 +37,7 @@ func TestPush_Local(t *testing.T) {
 
 	ref, err := name.ParseReference(mft[0].RepoTags[0])
 	require.NoError(t, err)
-	assert.Equal(t, "5cffc09f", ref.Identifier())
+	assert.Equal(t, "a9d35f00", ref.Identifier())
 
 	img, err := tarball.Image(func() (io.ReadCloser, error) {
 		return io.NopCloser(bytes.NewReader(data)), nil
@@ -103,5 +103,5 @@ func TestPush_Remote(t *testing.T) {
 		remote.WithAuth(&authn.Basic{Username: "testuser", Password: "testpassword"}),
 	)
 	require.NoError(t, err)
-	assert.Equal(t, "5cffc09f", tags[0])
+	assert.Equal(t, "a9d35f00", tags[0])
 }
