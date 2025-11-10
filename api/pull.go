@@ -10,6 +10,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/dustin/go-humanize"
@@ -78,9 +79,15 @@ func pull(opts *options) (tars []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	imgSize, _ := img.Size()
-	slog.Info("image found", "bsize", imgSize, "size", humanize.Bytes(uint64(imgSize)))
 	cf, _ := img.ConfigFile()
+	imgSize, _ := img.Size()
+	slog.Info(
+		"image found",
+		"created", cf.Created.Time.String(),
+		"age", time.Since(cf.Created.Time).Abs().String(),
+		"bsize", imgSize,
+		"size", humanize.Bytes(uint64(imgSize)),
+	)
 	metaIndex := slices.IndexFunc(cf.History, func(h v1.History) bool {
 		return h.CreatedBy == utils.CreatedByCracMeta
 	})
