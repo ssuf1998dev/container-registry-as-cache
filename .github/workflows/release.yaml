@@ -36,7 +36,7 @@ jobs:
         uses: evg4b/goreleaser-npm-publisher-action@v1.3.0
         with:
           token: ${{ secrets.NPM_AUTH_TOKEN }}
-          tag: latest
+          # tag: latest
           prefix: "@ssuf1998dev"
           files: |-
             LICENSE
