@@ -5,9 +5,11 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/goccy/go-yaml"
@@ -33,8 +35,8 @@ func Pull(opts ...Option) error {
 
 func pull(opts *options) (tars []byte, err error) {
 	tag := opts.tag
+	var keys []string
 	if len(tag) == 0 {
-		var keys []string
 		keys = append(keys, opts.keys...)
 		if len(opts.platform) > 0 {
 			keys = append(keys, opts.platform)
@@ -56,6 +58,7 @@ func pull(opts *options) (tars []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
+	slog.Info("reference", "repo", repo, "tag", tag, "keys", strings.Join(keys, ", "), "depFiles", len(opts.depFiles))
 
 	transport := remote.DefaultTransport.(*http.Transport)
 	if opts.insecure {
@@ -72,6 +75,7 @@ func pull(opts *options) (tars []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
+	slog.Info("image found")
 	cf, _ := img.ConfigFile()
 	metaIndex := slices.IndexFunc(cf.History, func(h v1.History) bool {
 		return h.CreatedBy == utils.CreatedByCracMeta
@@ -108,6 +112,11 @@ func pull(opts *options) (tars []byte, err error) {
 		return io.ReadAll(cacheReader)
 	}
 
+	slog.Info("uncompressing cache layer from image...", "workdir", opts.workdir, "perm", opts.filePerm.String())
 	err = tarhelper.Untar(cacheReader, opts.workdir, opts.filePerm)
-	return nil, err
+	if err != nil {
+		return nil, err
+	}
+	slog.Info("uncompressed")
+	return nil, nil
 }
