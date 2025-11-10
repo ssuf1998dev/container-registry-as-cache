@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/dustin/go-humanize"
 	"github.com/goccy/go-yaml"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
@@ -77,7 +78,8 @@ func pull(opts *options) (tars []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	slog.Info("image found")
+	imgSize, _ := img.Size()
+	slog.Info("image found", "bsize", imgSize, "size", humanize.Bytes(uint64(imgSize)))
 	cf, _ := img.ConfigFile()
 	metaIndex := slices.IndexFunc(cf.History, func(h v1.History) bool {
 		return h.CreatedBy == utils.CreatedByCracMeta
@@ -114,7 +116,11 @@ func pull(opts *options) (tars []byte, err error) {
 		return io.ReadAll(cacheReader)
 	}
 
-	slog.Info("uncompressing cache layer from image...", "workdir", opts.workdir, "perm", opts.filePerm.String())
+	slog.Info(
+		"uncompressing cache layer from image...",
+		"workdir", opts.workdir,
+		"perm", opts.filePerm.String(),
+	)
 	err = tarhelper.Untar(cacheReader, opts.workdir, opts.filePerm)
 	if err != nil {
 		return nil, err

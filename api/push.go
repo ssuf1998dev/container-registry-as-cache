@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/goccy/go-yaml"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
@@ -107,7 +108,11 @@ func push(opts *options) (image []byte, err error) {
 	}
 
 	if len(opts.outputFile) != 0 {
-		slog.Info("writing the image to file...", "file", opts.outputFile, "size", imgSize)
+		slog.Info("writing the image to file...",
+			"file", opts.outputFile,
+			"bsize", imgSize,
+			"size", humanize.Bytes(uint64(imgSize)),
+		)
 		f, err := os.OpenFile(opts.outputFile, os.O_CREATE|os.O_RDWR, 0644)
 		if err != nil {
 			return nil, err
@@ -123,7 +128,7 @@ func push(opts *options) (image []byte, err error) {
 		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
-	slog.Info("writing the image to remote registry...", "size", imgSize)
+	slog.Info("writing the image to remote registry...", "bsize", imgSize, "size", humanize.Bytes(uint64(imgSize)))
 	remoteOpts := []remote.Option{
 		remote.WithContext(opts.context),
 		remote.WithTransport(transport),
