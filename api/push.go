@@ -92,7 +92,7 @@ func push(opts *options) (image []byte, err error) {
 		return nil, err
 	}
 	slog.Info("reference", "repo", repo, "tag", tag, "keys", strings.Join(keys, ", "), "depFiles", len(opts.depFiles))
-	imgSize, _ := img.Size()
+	imgSize, _ := utils.CompressedImageSize(img)
 
 	if opts.outputStdout {
 		err := tarball.Write(ref, img, os.Stdout)

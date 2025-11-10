@@ -11,6 +11,7 @@ import (
 
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/google/go-containerregistry/pkg/name"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 )
 
 type CracMeta struct {
@@ -71,4 +72,18 @@ func PathJoinRespectAbs(elem ...string) string {
 		}
 	}
 	return filepath.Join(elem...)
+}
+
+func CompressedImageSize(img v1.Image) (int64, error) {
+	layers, err := img.Layers()
+	if err != nil {
+		return 0, err
+	}
+	size := int64(0)
+	for _, layer := range layers {
+		if lsize, err := layer.Size(); err == nil {
+			size += lsize
+		}
+	}
+	return size, nil
 }

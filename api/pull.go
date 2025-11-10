@@ -80,7 +80,7 @@ func pull(opts *options) (tars []byte, err error) {
 		return nil, err
 	}
 	cf, _ := img.ConfigFile()
-	imgSize, _ := img.Size()
+	imgSize, _ := utils.CompressedImageSize(img)
 	slog.Info(
 		"image found",
 		"created", cf.Created.Time.String(),
