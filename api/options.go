@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/google/go-containerregistry/pkg/name"
-	"github.com/ssuf1998dev/container-registry-as-cache/internal/configfile"
 	cracprofile "github.com/ssuf1998dev/container-registry-as-cache/internal/profile"
 )
 
@@ -30,8 +28,6 @@ type options struct {
 
 	tag     string
 	workdir string
-
-	configfile string // internal
 
 	outputStdout bool
 	outputBytes  bool
@@ -56,53 +52,9 @@ func WithUsername(username string) Option {
 	}
 }
 
-func WithLoginUsername() Option {
-	return func(o *options) {
-		o.username = func() string {
-			cf := configfile.NewConfigFile(nil)
-			err := cf.Read()
-			if err != nil || cf.Config.Auths == nil {
-				return o.username
-			}
-			ref, err := name.ParseReference(o.repo)
-			if err != nil {
-				return o.username
-			}
-			key := ref.Context().RegistryStr()
-			if auth, ok := cf.Config.Auths[key]; ok {
-				return auth.Username
-			} else {
-				return o.username
-			}
-		}()
-	}
-}
-
 func WithPassword(password string) Option {
 	return func(o *options) {
 		o.password = password
-	}
-}
-
-func WithLoginPassword() Option {
-	return func(o *options) {
-		o.password = func() string {
-			cf := configfile.NewConfigFile(nil)
-			err := cf.Read()
-			if err != nil || cf.Config.Auths == nil {
-				return o.password
-			}
-			ref, err := name.ParseReference(o.repo)
-			if err != nil {
-				return o.password
-			}
-			key := ref.Context().RegistryStr()
-			if auth, ok := cf.Config.Auths[key]; ok {
-				return auth.Password
-			} else {
-				return o.password
-			}
-		}()
 	}
 }
 
@@ -159,12 +111,6 @@ func WithWorkdir(workdir string) Option {
 		if len(workdir) != 0 {
 			o.workdir, _ = filepath.Abs(workdir)
 		}
-	}
-}
-
-func withConfigfile(configfile string) Option {
-	return func(o *options) {
-		o.configfile = configfile
 	}
 }
 

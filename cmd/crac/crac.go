@@ -151,9 +151,7 @@ func main() {
 						api.WithContext(context.Background()),
 						api.WithRepository(repo),
 						api.WithUsername(cmd.String("username")),
-						// api.WithLoginUsername(),
 						api.WithPassword(cmd.String("password")),
-						// api.WithLoginPassword(),
 						api.WithForceHttp(cmd.Bool("force-http")),
 						api.WithInsecure(cmd.Bool("insecure")),
 						api.WithKeys(cmd.StringSlice("key")),
@@ -259,9 +257,7 @@ func main() {
 						api.WithContext(context.Background()),
 						api.WithRepository(repo),
 						api.WithUsername(cmd.String("username")),
-						// api.WithLoginUsername(),
 						api.WithPassword(cmd.String("password")),
-						// api.WithLoginPassword(),
 						api.WithForceHttp(cmd.Bool("force-http")),
 						api.WithInsecure(cmd.Bool("insecure")),
 						api.WithKeys(cmd.StringSlice("keys")),
@@ -275,50 +271,6 @@ func main() {
 					)
 				},
 			},
-			// {
-			// 	Name:      "login",
-			// 	Usage:     "authenticate to a registry",
-			// 	ArgsUsage: "[repository or registry]",
-			// 	Suggest:   false,
-			// 	Arguments: []cli.Argument{
-			// 		&cli.StringArg{Name: "repo"},
-			// 	},
-			// 	Flags: []cli.Flag{
-			// 		&cli.StringFlag{Name: "username", Usage: "username", Aliases: []string{"u"}},
-			// 		&cli.StringFlag{Name: "password", Usage: "password", Aliases: []string{"p"}},
-			// 	},
-			// 	Action: func(ctx context.Context, cmd *cli.Command) error {
-			// 		repo := cmd.StringArg("repo")
-			// 		if len(repo) == 0 {
-			// 			return fmt.Errorf("argument \"repo\" is required")
-			// 		}
-
-			// 		return api.Login(
-			// 			api.WithRepository(repo),
-			// 			api.WithUsername(cmd.String("username")),
-			// 			api.WithPassword(cmd.String("password")),
-			// 		)
-			// 	},
-			// },
-			// {
-			// 	Name:      "logout",
-			// 	Usage:     "log out from a registry",
-			// 	ArgsUsage: "[repository or registry]",
-			// 	Suggest:   false,
-			// 	Arguments: []cli.Argument{
-			// 		&cli.StringArg{Name: "repo"},
-			// 	},
-			// 	Action: func(ctx context.Context, cmd *cli.Command) error {
-			// 		repo := cmd.StringArg("repo")
-			// 		if len(repo) == 0 {
-			// 			return fmt.Errorf("argument \"repo\" is required")
-			// 		}
-
-			// 		return api.Logout(
-			// 			api.WithRepository(repo),
-			// 		)
-			// 	},
-			// },
 		},
 	}
 
