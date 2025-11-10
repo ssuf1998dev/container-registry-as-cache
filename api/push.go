@@ -124,12 +124,14 @@ func push(opts *options) (image []byte, err error) {
 	}
 
 	slog.Info("writing the image to remote registry...", "size", imgSize)
-	err = remote.Write(
-		ref, img,
-		remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}),
+	remoteOpts := []remote.Option{
 		remote.WithContext(opts.context),
 		remote.WithTransport(transport),
-	)
+	}
+	if len(opts.username) != 0 && len(opts.password) != 0 {
+		remoteOpts = append(remoteOpts, remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}))
+	}
+	err = remote.Write(ref, img, remoteOpts...)
 	if err != nil {
 		return nil, err
 	}

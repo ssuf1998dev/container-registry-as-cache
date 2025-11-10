@@ -66,12 +66,14 @@ func pull(opts *options) (tars []byte, err error) {
 		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
-	img, err := remote.Image(
-		ref,
-		remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}),
+	remoteOpts := []remote.Option{
 		remote.WithContext(opts.context),
 		remote.WithTransport(transport),
-	)
+	}
+	if len(opts.username) != 0 && len(opts.password) != 0 {
+		remoteOpts = append(remoteOpts, remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}))
+	}
+	img, err := remote.Image(ref, remoteOpts...)
 	if err != nil {
 		return nil, err
 	}
