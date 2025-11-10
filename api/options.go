@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"io/fs"
 	"maps"
 	"os"
 	"path/filepath"
@@ -25,6 +26,7 @@ type options struct {
 	depFiles map[string]string
 	files    map[string]string
 	platform string
+	filePerm fs.FileMode
 
 	tag     string
 	workdir string
@@ -137,6 +139,12 @@ func WithFiles(files map[string]string) Option {
 func WithPlatform(platform string) Option {
 	return func(o *options) {
 		o.platform = platform
+	}
+}
+
+func WithFilePerm(perm fs.FileMode) Option {
+	return func(o *options) {
+		o.filePerm = perm
 	}
 }
 

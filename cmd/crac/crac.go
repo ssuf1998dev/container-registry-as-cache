@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"runtime"
@@ -114,9 +115,9 @@ func main() {
 						api.WithContext(context.Background()),
 						api.WithRepository(repo),
 						api.WithUsername(cmd.String("username")),
-						api.WithLoginUsername(),
+						// api.WithLoginUsername(),
 						api.WithPassword(cmd.String("password")),
-						api.WithLoginPassword(),
+						// api.WithLoginPassword(),
 						api.WithForceHttp(cmd.Bool("force-http")),
 						api.WithInsecure(cmd.Bool("insecure")),
 						api.WithKeys(cmd.StringSlice("key")),
@@ -158,6 +159,10 @@ func main() {
 					&cli.StringFlag{
 						Name: "platform", Aliases: []string{"P"}, Value: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH), Category: "BASIC",
 						Usage: "platform of cache, it will be a part of keys changing tag",
+					},
+					&cli.Uint32Flag{
+						Name: "perm", Category: "BASIC", Value: 0755, DefaultText: "0755",
+						Usage: "chmod all pulled file",
 					},
 					&cli.BoolFlag{
 						Name: "unknown-platform", Category: "BASIC",
@@ -218,9 +223,9 @@ func main() {
 						api.WithContext(context.Background()),
 						api.WithRepository(repo),
 						api.WithUsername(cmd.String("username")),
-						api.WithLoginUsername(),
+						// api.WithLoginUsername(),
 						api.WithPassword(cmd.String("password")),
-						api.WithLoginPassword(),
+						// api.WithLoginPassword(),
 						api.WithForceHttp(cmd.Bool("force-http")),
 						api.WithInsecure(cmd.Bool("insecure")),
 						api.WithKeys(cmd.StringSlice("keys")),
@@ -228,55 +233,56 @@ func main() {
 						api.WithTag(cmd.String("tag")),
 						api.WithWorkdir(cmd.String("workdir")),
 						api.WithPlatform(platform),
+						api.WithFilePerm(fs.FileMode(cmd.Uint32("perm"))),
 						api.WithProfile(profile, len(profileFile) != 0),
 						api.WithOutputStdout(cmd.Bool("stdout")),
 					)
 				},
 			},
-			{
-				Name:      "login",
-				Usage:     "authenticate to a registry",
-				ArgsUsage: "[repository or registry]",
-				Suggest:   false,
-				Arguments: []cli.Argument{
-					&cli.StringArg{Name: "repo"},
-				},
-				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "username", Usage: "username", Aliases: []string{"u"}},
-					&cli.StringFlag{Name: "password", Usage: "password", Aliases: []string{"p"}},
-				},
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					repo := cmd.StringArg("repo")
-					if len(repo) == 0 {
-						return fmt.Errorf("argument \"repo\" is required")
-					}
+			// {
+			// 	Name:      "login",
+			// 	Usage:     "authenticate to a registry",
+			// 	ArgsUsage: "[repository or registry]",
+			// 	Suggest:   false,
+			// 	Arguments: []cli.Argument{
+			// 		&cli.StringArg{Name: "repo"},
+			// 	},
+			// 	Flags: []cli.Flag{
+			// 		&cli.StringFlag{Name: "username", Usage: "username", Aliases: []string{"u"}},
+			// 		&cli.StringFlag{Name: "password", Usage: "password", Aliases: []string{"p"}},
+			// 	},
+			// 	Action: func(ctx context.Context, cmd *cli.Command) error {
+			// 		repo := cmd.StringArg("repo")
+			// 		if len(repo) == 0 {
+			// 			return fmt.Errorf("argument \"repo\" is required")
+			// 		}
 
-					return api.Login(
-						api.WithRepository(repo),
-						api.WithUsername(cmd.String("username")),
-						api.WithPassword(cmd.String("password")),
-					)
-				},
-			},
-			{
-				Name:      "logout",
-				Usage:     "log out from a registry",
-				ArgsUsage: "[repository or registry]",
-				Suggest:   false,
-				Arguments: []cli.Argument{
-					&cli.StringArg{Name: "repo"},
-				},
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					repo := cmd.StringArg("repo")
-					if len(repo) == 0 {
-						return fmt.Errorf("argument \"repo\" is required")
-					}
+			// 		return api.Login(
+			// 			api.WithRepository(repo),
+			// 			api.WithUsername(cmd.String("username")),
+			// 			api.WithPassword(cmd.String("password")),
+			// 		)
+			// 	},
+			// },
+			// {
+			// 	Name:      "logout",
+			// 	Usage:     "log out from a registry",
+			// 	ArgsUsage: "[repository or registry]",
+			// 	Suggest:   false,
+			// 	Arguments: []cli.Argument{
+			// 		&cli.StringArg{Name: "repo"},
+			// 	},
+			// 	Action: func(ctx context.Context, cmd *cli.Command) error {
+			// 		repo := cmd.StringArg("repo")
+			// 		if len(repo) == 0 {
+			// 			return fmt.Errorf("argument \"repo\" is required")
+			// 		}
 
-					return api.Logout(
-						api.WithRepository(repo),
-					)
-				},
-			},
+			// 		return api.Logout(
+			// 			api.WithRepository(repo),
+			// 		)
+			// 	},
+			// },
 		},
 	}
 

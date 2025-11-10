@@ -108,6 +108,6 @@ func pull(opts *options) (tars []byte, err error) {
 		return io.ReadAll(cacheReader)
 	}
 
-	err = tarhelper.Untar(cacheReader, opts.workdir)
+	err = tarhelper.Untar(cacheReader, opts.workdir, opts.filePerm)
 	return nil, err
 }

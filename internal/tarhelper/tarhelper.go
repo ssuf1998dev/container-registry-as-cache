@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -47,7 +48,7 @@ func UntarFile(r io.Reader, path string) ([]byte, error) {
 	return b, nil
 }
 
-func Untar(r io.Reader, dst string) error {
+func Untar(r io.Reader, dst string, filePerm fs.FileMode) error {
 	return WalkTar(r, func(header *tar.Header, fi os.FileInfo, data []byte) (bool, error) {
 		// force to make header.Name relative to dst
 		target := filepath.Join(dst, header.Name)
@@ -69,11 +70,13 @@ func Untar(r io.Reader, dst string) error {
 				}
 			}
 
-			mode := header.Mode
-			if mode == 0 {
-				mode = 0644
+			mode := os.FileMode(0755)
+			if filePerm != 0 {
+				mode = filePerm
+			} else if header.Mode != 0 {
+				mode = os.FileMode(header.Mode)
 			}
-			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(mode))
+			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, mode)
 			if err != nil {
 				return false, err
 			}
