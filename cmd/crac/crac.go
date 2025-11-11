@@ -74,6 +74,10 @@ func main() {
 						Name: "dep", Aliases: []string{"d"}, Category: "BASIC",
 						Usage: "dependent file(s) for computing cache image tag, glob supported",
 					},
+					&cli.StringFlag{
+						Name: "tag", Aliases: []string{"t"}, Category: "BASIC",
+						Usage: "specific a tag to push",
+					},
 					&cli.StringSliceFlag{
 						Name: "file", Aliases: []string{"f"}, Category: "BASIC",
 						Usage: "cache file(s) to make image, glob supported",
@@ -156,6 +160,7 @@ func main() {
 						api.WithInsecure(cmd.Bool("insecure")),
 						api.WithKeys(cmd.StringSlice("key")),
 						api.WithDepFiles(deps),
+						api.WithTag(cmd.String("tag")),
 						api.WithFiles(files),
 						api.WithWorkdir(cmd.String("workdir")),
 						api.WithPlatform(platform),
@@ -175,11 +180,11 @@ func main() {
 				},
 				Flags: []cli.Flag{
 					&cli.StringSliceFlag{
-						Name: "keys", Aliases: []string{"k"}, Category: "BASIC",
+						Name: "key", Aliases: []string{"k"}, Category: "BASIC",
 						Usage: "key(s) for computing cache image tag",
 					},
 					&cli.StringSliceFlag{
-						Name: "deps", Aliases: []string{"d"}, Category: "BASIC",
+						Name: "dep", Aliases: []string{"d"}, Category: "BASIC",
 						Usage: "dependent file(s) for computing cache image tag, glob supported",
 					},
 					&cli.StringFlag{
@@ -238,7 +243,7 @@ func main() {
 					if len(repo) == 0 {
 						return fmt.Errorf("argument repository is required")
 					}
-					deps, err := utils.ScanFiles(cmd.StringSlice("deps"))
+					deps, err := utils.ScanFiles(cmd.StringSlice("dep"))
 					if err != nil {
 						return err
 					}
@@ -260,7 +265,7 @@ func main() {
 						api.WithPassword(cmd.String("password")),
 						api.WithForceHttp(cmd.Bool("force-http")),
 						api.WithInsecure(cmd.Bool("insecure")),
-						api.WithKeys(cmd.StringSlice("keys")),
+						api.WithKeys(cmd.StringSlice("key")),
 						api.WithDepFiles(deps),
 						api.WithTag(cmd.String("tag")),
 						api.WithWorkdir(cmd.String("workdir")),
