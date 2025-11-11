@@ -110,6 +110,7 @@ func WithWorkdir(workdir string) Option {
 	return func(o *options) {
 		if len(workdir) != 0 {
 			o.workdir, _ = filepath.Abs(workdir)
+			os.MkdirAll(o.workdir, 0766)
 		}
 	}
 }
