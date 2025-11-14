@@ -15,10 +15,7 @@
     "source=${localWorkspaceFolderBasename}-go,target=/root/go,type=volume"
   ],
   "postAttachCommand": {
-    "git": "git config --global help.format info && git config --global user.name $GIT_USER_NAME && git config --global user.email $GIT_USER_EMAIL",
-    "gopls": "command -v gopls || go install golang.org/x/tools/gopls@latest",
-    "staticcheck": "command -v staticcheck || go install honnef.co/go/tools/cmd/staticcheck@latest",
-    "goreleaser": "command -v goreleaser || go install github.com/goreleaser/goreleaser/v2@latest"
+    "git": "git config --global help.format info && git config --global user.name $GIT_USER_NAME && git config --global user.email $GIT_USER_EMAIL"
   },
   "customizations": {
     "vscode": {
