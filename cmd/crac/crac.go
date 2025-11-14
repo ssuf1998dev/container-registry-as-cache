@@ -98,6 +98,10 @@ func main() {
 						Name: "output", Aliases: []string{"o"}, Category: "BASIC",
 						Usage: "output where, could be stdout or file",
 					},
+					&cli.BoolFlag{
+						Name: "force", Category: "BASIC", Value: true,
+						Usage: "force push to remote registry",
+					},
 
 					&cli.StringFlag{
 						Name: "profile", Category: "PROFILE",
@@ -167,6 +171,7 @@ func main() {
 						api.WithProfile(profile, len(profileFile) != 0),
 						api.WithOutputStdout(output == "stdout"),
 						api.WithOutputFile(output),
+						api.WithForcePush(cmd.Bool("force")),
 					)
 				},
 			},

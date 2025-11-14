@@ -31,6 +31,7 @@ func TestPull(t *testing.T) {
 		insecure:  true,
 		depFiles:  deps,
 		files:     map[string]string{"../testdata/foo": "../testdata/foo"},
+		forcePush: true,
 	})
 	require.NoError(t, err)
 

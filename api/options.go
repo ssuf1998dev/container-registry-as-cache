@@ -32,6 +32,8 @@ type options struct {
 	outputStdout bool
 	outputBytes  bool
 	outputFile   string
+
+	forcePush bool
 }
 
 func WithContext(ctx context.Context) Option {
@@ -159,5 +161,11 @@ func WithOutputStdout(enable bool) Option {
 func WithOutputFile(file string) Option {
 	return func(o *options) {
 		o.outputFile = file
+	}
+}
+
+func WithForcePush(forcePush bool) Option {
+	return func(o *options) {
+		o.forcePush = forcePush
 	}
 }

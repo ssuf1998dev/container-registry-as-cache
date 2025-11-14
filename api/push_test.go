@@ -96,6 +96,7 @@ func TestPush_Remote(t *testing.T) {
 		insecure:  true,
 		depFiles:  map[string]string{"../testdata/foo": "../testdata/foo"},
 		files:     map[string]string{"../testdata/foo": "../testdata/foo"},
+		forcePush: true,
 	})
 	require.NoError(t, err)
 

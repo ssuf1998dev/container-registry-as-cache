@@ -131,6 +131,20 @@ func push(opts *options) (image []byte, err error) {
 		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
+	if !opts.forcePush {
+		remoteGetOpts := []remote.Option{
+			remote.WithContext(opts.context),
+			remote.WithTransport(transport),
+		}
+		if len(opts.username) != 0 && len(opts.password) != 0 {
+			remoteGetOpts = append(remoteGetOpts, remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}))
+		}
+		if desc, err := remote.Get(ref, remoteGetOpts...); err == nil {
+			slog.Info("cache image exists, skip", "tag", tag, "digest", desc.Digest)
+			return nil, nil
+		}
+	}
+
 	slog.Info("writing the image to remote registry...", "bsize", imgSize, "size", humanize.Bytes(uint64(imgSize)))
 	updates := make(chan v1.Update)
 	go func() {
@@ -153,15 +167,15 @@ func push(opts *options) (image []byte, err error) {
 			)
 		}
 	}()
-	remoteOpts := []remote.Option{
+	remoteWriteOpts := []remote.Option{
 		remote.WithContext(opts.context),
 		remote.WithTransport(transport),
 		remote.WithProgress(updates),
 	}
 	if len(opts.username) != 0 && len(opts.password) != 0 {
-		remoteOpts = append(remoteOpts, remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}))
+		remoteWriteOpts = append(remoteWriteOpts, remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}))
 	}
-	err = remote.Write(ref, img, remoteOpts...)
+	err = remote.Write(ref, img, remoteWriteOpts...)
 	if err != nil {
 		return nil, err
 	}
