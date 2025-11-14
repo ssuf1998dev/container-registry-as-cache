@@ -148,6 +148,7 @@ func push(opts *options) (image []byte, err error) {
 	slog.Info("writing the image to remote registry...", "bsize", imgSize, "size", humanize.Bytes(uint64(imgSize)))
 	updates := make(chan v1.Update)
 	go func() {
+		last := time.Unix(0, 0)
 		for {
 			u, ok := <-updates
 			if !ok {
@@ -159,12 +160,15 @@ func push(opts *options) (image []byte, err error) {
 			if u.Complete >= u.Total {
 				continue
 			}
-			slog.Info(
-				"image writing...",
-				"progress", float64(u.Complete)/float64(u.Total),
-				"complete", u.Complete,
-				"total", u.Total,
-			)
+			if time.Since(last).Abs() >= 1000*time.Millisecond {
+				slog.Info(
+					"image writing...",
+					"progress", float64(u.Complete)/float64(u.Total),
+					"complete", u.Complete,
+					"total", u.Total,
+				)
+				last = time.Now()
+			}
 		}
 	}()
 	remoteWriteOpts := []remote.Option{
