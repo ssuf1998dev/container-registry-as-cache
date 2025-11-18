@@ -135,6 +135,8 @@ func main() {
 					},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
+					slog.Debug("pushing...")
+
 					repo := cmd.StringArg("repo")
 					if len(repo) == 0 {
 						return fmt.Errorf("argument repository is required")
@@ -264,6 +266,8 @@ func main() {
 					},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
+					slog.Debug("pulling...")
+
 					repo := cmd.StringArg("repo")
 					if len(repo) == 0 {
 						return fmt.Errorf("argument repository is required")
