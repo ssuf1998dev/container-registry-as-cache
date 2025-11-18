@@ -25,7 +25,10 @@ import (
 
 func Pull(opts ...Option) error {
 	o := &options{
-		context: context.Background(),
+		context:  context.Background(),
+		keys:     []string{},
+		depFiles: map[string]string{},
+		files:    map[string]string{},
 	}
 	for _, option := range opts {
 		option(o)

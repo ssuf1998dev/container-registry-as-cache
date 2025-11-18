@@ -143,8 +143,17 @@ func WithProfile(profile string, profileType string) Option {
 			return
 		}
 
+		if o.keys == nil {
+			o.keys = []string{}
+		}
 		o.keys = append(o.keys, p.Keys...)
+		if o.depFiles == nil {
+			o.depFiles = map[string]string{}
+		}
 		maps.Copy(o.depFiles, p.DepFiles.Value)
+		if o.files == nil {
+			o.files = map[string]string{}
+		}
 		maps.Copy(o.files, p.Files.Value)
 	}
 }
