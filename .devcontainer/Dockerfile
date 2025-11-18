@@ -2,13 +2,6 @@ FROM fedora:42
 
 SHELL ["/bin/bash", "-c"]
 
-RUN \
-  sed -e 's|^metalink=|#metalink=|g' \
-  -e 's|^#baseurl=http://download.example/pub/fedora/linux|baseurl=https://mirrors.tuna.tsinghua.edu.cn/fedora|g' \
-  -i.bak \
-  /etc/yum.repos.d/fedora.repo \
-  /etc/yum.repos.d/fedora-updates.repo
-
 RUN dnf makecache && dnf install --setopt=install_weak_deps=False -y which unzip git bash-completion
 
 ARG GO_VERSION=1.25.3
