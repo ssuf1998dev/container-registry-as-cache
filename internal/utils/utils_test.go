@@ -21,8 +21,7 @@ func TestScanFiles_Pnpm(t *testing.T) {
 	}
 	t.Logf("%s\n", output)
 
-	files, err := ScanFiles([]string{filepath.Join(basepath, ".pnpm/store/**")})
-	require.NoError(t, err)
+	files := ScanFiles([]string{filepath.Join(basepath, ".pnpm/store/**")})
 	require.Greater(t, len(files), 0)
 }
 

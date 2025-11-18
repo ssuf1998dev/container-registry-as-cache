@@ -45,24 +45,24 @@ func ComputeTag(files map[string]string, keys []string, workdir string) (string,
 	return tag, nil
 }
 
-func ScanFiles(patterns []string) (map[string]string, error) {
+func ScanFiles(patterns []string) map[string]string {
 	m := map[string]string{}
 	for _, item := range patterns {
 		basepath, pattern := doublestar.SplitPattern(filepath.ToSlash(item))
 		fsys := os.DirFS(basepath)
 		matches, err := doublestar.Glob(fsys, pattern, doublestar.WithFilesOnly())
 		if err != nil {
-			return nil, err
+			continue
 		}
 		for _, match := range matches {
 			abs, err := filepath.Abs(filepath.Join(basepath, match))
 			if err != nil {
-				return nil, err
+				continue
 			}
 			m[match] = abs
 		}
 	}
-	return m, nil
+	return m
 }
 
 func PathJoinRespectAbs(elem ...string) string {

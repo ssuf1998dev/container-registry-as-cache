@@ -65,12 +65,12 @@ func TestPush_Local(t *testing.T) {
 func TestPush_Local_Pnpm(t *testing.T) {
 	basepath := "../testdata/pnpm"
 
-	depFiles, err := utils.ScanFiles([]string{filepath.Join(basepath, "pnpm-lock.yaml")})
-	require.NoError(t, err)
-	files, err := utils.ScanFiles([]string{filepath.Join(basepath, ".pnpm/store/**")})
-	require.NoError(t, err)
+	depFiles := utils.ScanFiles([]string{filepath.Join(basepath, "pnpm-lock.yaml")})
+	assert.Greater(t, len(depFiles), 0)
+	files := utils.ScanFiles([]string{filepath.Join(basepath, ".pnpm/store/**")})
+	assert.Greater(t, len(files), 0)
 
-	_, err = push(&options{
+	_, err := push(&options{
 		depFiles:    depFiles,
 		files:       files,
 		outputBytes: true,

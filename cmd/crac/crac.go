@@ -139,14 +139,8 @@ func main() {
 					if len(repo) == 0 {
 						return fmt.Errorf("argument repository is required")
 					}
-					deps, err := utils.ScanFiles(cmd.StringSlice("dep"))
-					if err != nil {
-						return err
-					}
-					files, err := utils.ScanFiles(cmd.StringSlice("file"))
-					if err != nil {
-						return err
-					}
+					deps := utils.ScanFiles(cmd.StringSlice("dep"))
+					files := utils.ScanFiles(cmd.StringSlice("file"))
 					profile := cmd.String("profile")
 					profileFile := cmd.String("profile-file")
 					profileStdin := cmd.Bool("profile-stdin")
@@ -274,10 +268,7 @@ func main() {
 					if len(repo) == 0 {
 						return fmt.Errorf("argument repository is required")
 					}
-					deps, err := utils.ScanFiles(cmd.StringSlice("dep"))
-					if err != nil {
-						return err
-					}
+					deps := utils.ScanFiles(cmd.StringSlice("dep"))
 					profile := cmd.String("profile")
 					profileFile := cmd.String("profile-file")
 					profileStdin := cmd.Bool("profile-stdin")

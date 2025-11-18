@@ -32,9 +32,7 @@ func (f *ProfileFiles) UnmarshalYAML(raw ast.Node) error {
 			}
 		}
 
-		if m, err := utils.ScanFiles(patterns); err == nil {
-			f.Value = m
-		}
+		f.Value = utils.ScanFiles(patterns)
 	}
 	return nil
 }
