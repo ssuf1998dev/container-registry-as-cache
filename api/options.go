@@ -117,15 +117,18 @@ func WithWorkdir(workdir string) Option {
 	}
 }
 
-func WithProfile(profile string, file bool) Option {
+func WithProfile(profile string, profileType string) Option {
 	return func(o *options) {
 		var text string
 
-		if file {
+		switch profileType {
+		case "content":
+			text = profile
+		case "file":
 			if b, err := os.ReadFile(profile); err == nil {
 				text = string(b)
 			}
-		} else {
+		default:
 			switch profile {
 			case "pnpm":
 				text = cracprofile.Pnpm

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io/fs"
@@ -111,6 +112,10 @@ func main() {
 						Name: "profile-file", Category: "PROFILE",
 						Usage: "read profile from file, if set will ignore \"profile\"",
 					},
+					&cli.BoolFlag{
+						Name: "profile-stdin", Category: "PROFILE",
+						Usage: "read profile from stdin, if set will ignore \"profile\" and \"profile-file\"",
+					},
 
 					&cli.StringFlag{
 						Name: "username", Aliases: []string{"u"}, Category: "AUTH",
@@ -144,7 +149,16 @@ func main() {
 					}
 					profile := cmd.String("profile")
 					profileFile := cmd.String("profile-file")
-					if len(profileFile) != 0 {
+					profileStdin := cmd.Bool("profile-stdin")
+					if profileStdin {
+						scanner := bufio.NewScanner(os.Stdin)
+						for scanner.Scan() {
+							profile += fmt.Sprintf("%s\n", scanner.Text())
+						}
+						if err := scanner.Err(); err != nil {
+							return err
+						}
+					} else if len(profileFile) != 0 {
 						profile = profileFile
 					}
 
@@ -168,7 +182,15 @@ func main() {
 						api.WithFiles(files),
 						api.WithWorkdir(cmd.String("workdir")),
 						api.WithPlatform(platform),
-						api.WithProfile(profile, len(profileFile) != 0),
+						api.WithProfile(profile, func() string {
+							if profileStdin {
+								return "content"
+							}
+							if len(profileFile) != 0 {
+								return "file"
+							}
+							return ""
+						}()),
 						api.WithOutputStdout(output == "stdout"),
 						api.WithOutputFile(output),
 						api.WithForcePush(cmd.Bool("force")),
@@ -225,6 +247,10 @@ func main() {
 						Name: "profile-file", Category: "PROFILE",
 						Usage: "read profile from file,  if set will ignore \"profile\"",
 					},
+					&cli.BoolFlag{
+						Name: "profile-stdin", Category: "PROFILE",
+						Usage: "read profile from stdin, if set will ignore \"profile\" and \"profile-file\"",
+					},
 
 					&cli.StringFlag{
 						Name: "username", Aliases: []string{"u"}, Category: "AUTH",
@@ -254,7 +280,16 @@ func main() {
 					}
 					profile := cmd.String("profile")
 					profileFile := cmd.String("profile-file")
-					if len(profileFile) != 0 {
+					profileStdin := cmd.Bool("profile-stdin")
+					if profileStdin {
+						scanner := bufio.NewScanner(os.Stdin)
+						for scanner.Scan() {
+							profile += fmt.Sprintf("%s\n", scanner.Text())
+						}
+						if err := scanner.Err(); err != nil {
+							return err
+						}
+					} else if len(profileFile) != 0 {
 						profile = profileFile
 					}
 
@@ -276,7 +311,15 @@ func main() {
 						api.WithWorkdir(cmd.String("workdir")),
 						api.WithPlatform(platform),
 						api.WithFilePerm(fs.FileMode(cmd.Uint32("perm"))),
-						api.WithProfile(profile, len(profileFile) != 0),
+						api.WithProfile(profile, func() string {
+							if profileStdin {
+								return "content"
+							}
+							if len(profileFile) != 0 {
+								return "file"
+							}
+							return ""
+						}()),
 						api.WithOutputStdout(cmd.Bool("stdout")),
 					)
 				},
