@@ -46,7 +46,7 @@ type Profile struct {
 //go:embed pnpm.yaml
 var Pnpm string
 
-func funcs(workdir string) template.FuncMap {
+func TplFuncs(workdir string) template.FuncMap {
 	return template.FuncMap{
 		"sh": func(cmd string) (string, error) {
 			file, err := syntax.NewParser().Parse(strings.NewReader(cmd), "")
@@ -70,7 +70,7 @@ func funcs(workdir string) template.FuncMap {
 }
 
 func Render(text string, workdir string) (*Profile, error) {
-	tpl, err := template.New("").Funcs(funcs(workdir)).Funcs(sprig.FuncMap()).Parse(text)
+	tpl, err := template.New("").Funcs(TplFuncs(workdir)).Funcs(sprig.FuncMap()).Parse(text)
 	if err != nil {
 		return nil, err
 	}
