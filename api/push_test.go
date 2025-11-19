@@ -24,6 +24,7 @@ import (
 
 func TestPush_Local(t *testing.T) {
 	data, err := push(&options{
+		context:     t.Context(),
 		depFiles:    map[string]string{"../testdata/foo": "../testdata/foo"},
 		files:       map[string]string{"../testdata/foo": "../testdata/foo"},
 		outputBytes: true,
@@ -71,6 +72,7 @@ func TestPush_Local_Pnpm(t *testing.T) {
 	assert.Greater(t, len(files), 0)
 
 	_, err := push(&options{
+		context:     t.Context(),
 		depFiles:    depFiles,
 		files:       files,
 		outputBytes: true,
