@@ -46,6 +46,51 @@ func push(opts *options) (image []byte, err error) {
 		return nil, fmt.Errorf("empty image is not allowed")
 	}
 
+	tag := opts.tag
+	var keys []string
+	if len(tag) == 0 {
+		keys = append(keys, opts.keys...)
+		if len(opts.platform) > 0 {
+			keys = append(keys, opts.platform)
+		}
+		tag, err = utils.ComputeTag(opts.depFiles, keys, opts.workdir)
+		if err != nil {
+			return nil, err
+		}
+	}
+	repo := opts.repo
+	if len(repo) == 0 {
+		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, utils.Crac)
+	}
+	nameOpts := []name.Option{}
+	if opts.forceHttp {
+		nameOpts = append(nameOpts, name.Insecure)
+	}
+	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag), nameOpts...)
+	if err != nil {
+		return nil, err
+	}
+
+	transport := remote.DefaultTransport.(*http.Transport)
+	if opts.insecure {
+		transport = transport.Clone()
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+
+	if !opts.forcePush {
+		remoteGetOpts := []remote.Option{
+			remote.WithContext(opts.context),
+			remote.WithTransport(transport),
+		}
+		if len(opts.username) != 0 && len(opts.password) != 0 {
+			remoteGetOpts = append(remoteGetOpts, remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}))
+		}
+		if desc, err := remote.Get(ref, remoteGetOpts...); err == nil {
+			slog.Warn("cache image exists, skip", "tag", tag, "digest", desc.Digest)
+			return nil, nil
+		}
+	}
+
 	slog.Info("making cache layer...", "files", len(opts.files))
 	cacheLayer, err := utils.NewTarLayer(opts.files, opts.workdir)
 	defer func() {
@@ -73,30 +118,6 @@ func push(opts *options) (image []byte, err error) {
 	}
 	img, _ = mutate.ConfigFile(img, cf)
 
-	tag := opts.tag
-	var keys []string
-	if len(tag) == 0 {
-		keys = append(keys, opts.keys...)
-		if len(opts.platform) > 0 {
-			keys = append(keys, opts.platform)
-		}
-		tag, err = utils.ComputeTag(opts.depFiles, keys, opts.workdir)
-		if err != nil {
-			return nil, err
-		}
-	}
-	repo := opts.repo
-	if len(repo) == 0 {
-		repo = fmt.Sprintf("%s/%s", name.DefaultRegistry, utils.Crac)
-	}
-	nameOpts := []name.Option{}
-	if opts.forceHttp {
-		nameOpts = append(nameOpts, name.Insecure)
-	}
-	ref, err := name.ParseReference(fmt.Sprintf("%s:%s", repo, tag), nameOpts...)
-	if err != nil {
-		return nil, err
-	}
 	slog.Info("reference", "repo", repo, "tag", tag, "keys", strings.Join(keys, ", "), "depFiles", len(opts.depFiles))
 	imgSize, _ := utils.CompressedImageSize(img)
 
@@ -126,26 +147,6 @@ func push(opts *options) (image []byte, err error) {
 		err = tarball.Write(ref, img, f)
 		slog.Info("image wrote")
 		return nil, err
-	}
-
-	transport := remote.DefaultTransport.(*http.Transport)
-	if opts.insecure {
-		transport = transport.Clone()
-		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	}
-
-	if !opts.forcePush {
-		remoteGetOpts := []remote.Option{
-			remote.WithContext(opts.context),
-			remote.WithTransport(transport),
-		}
-		if len(opts.username) != 0 && len(opts.password) != 0 {
-			remoteGetOpts = append(remoteGetOpts, remote.WithAuth(&authn.Basic{Username: opts.username, Password: opts.password}))
-		}
-		if desc, err := remote.Get(ref, remoteGetOpts...); err == nil {
-			slog.Info("cache image exists, skip", "tag", tag, "digest", desc.Digest)
-			return nil, nil
-		}
 	}
 
 	slog.Info("writing the image to remote registry...", "bsize", imgSize, "size", humanize.Bytes(uint64(imgSize)))
